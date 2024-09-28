@@ -12,40 +12,28 @@ from unittest.mock import MagicMock
 from unittest.mock import patch
 
 import pytest
-import salt.loader
-import salt.utils.decorators
-import salt.utils.decorators.path
 from salt.utils.odict import OrderedDict
 
-import saltext.zfs.modules.zpool as zpool
-import saltext.zfs.utils.zfs
+from saltext.zfs.modules import zpool
 from tests.support.zfs import ZFSMockData
 
-pytestmark = [
-    pytest.mark.slow_test,
-]
 
-
-@pytest.fixture
+@pytest.fixture(autouse=True)
 def utils_patch():
-    return ZFSMockData().get_patched_utils()
+    with patch.multiple("saltext.zfs.utils.zfs", **ZFSMockData().get_patched_utils()):
+        yield
 
 
 @pytest.fixture
 def configure_loader_modules(minion_opts):
-    utils = salt.loader.utils(minion_opts, whitelist=["zfs", "args", "systemd", "path", "platform"])
-    zpool_obj = {
+    return {
         zpool: {
             "__opts__": minion_opts,
-            "__utils__": utils,
         },
     }
 
-    return zpool_obj
 
-
-@pytest.mark.slow_test
-def test_exists_success(utils_patch):
+def test_exists_success():
     """
     Tests successful return of exists function
     """
@@ -57,14 +45,11 @@ def test_exists_success(utils_patch):
     ret["stderr"] = ""
     ret["retcode"] = 0
     mock_cmd = MagicMock(return_value=ret)
-    with patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zpool.__utils__, utils_patch
-    ):
+    with patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}):
         assert zpool.exists("myzpool")
 
 
-@pytest.mark.slow_test
-def test_exists_failure(utils_patch):
+def test_exists_failure():
     """
     Tests failure return of exists function
     """
@@ -74,13 +59,11 @@ def test_exists_failure(utils_patch):
     ret["retcode"] = 1
     mock_cmd = MagicMock(return_value=ret)
 
-    with patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zpool.__utils__, utils_patch
-    ):
+    with patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}):
         assert not zpool.exists("myzpool")
 
 
-def test_healthy(utils_patch):
+def test_healthy():
     """
     Tests successful return of healthy function
     """
@@ -90,13 +73,11 @@ def test_healthy(utils_patch):
     ret["retcode"] = 0
     mock_cmd = MagicMock(return_value=ret)
 
-    with patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zpool.__utils__, utils_patch
-    ):
+    with patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}):
         assert zpool.healthy()
 
 
-def test_status(utils_patch):
+def test_status():
     """
     Tests successful return of status function
     """
@@ -105,7 +86,7 @@ def test_status(utils_patch):
         [
             "  pool: mypool",
             " state: ONLINE",
-            "  scan: scrub repaired 0 in 0h6m with 0 errors on Mon Dec 21 02:06:17" " 2015",
+            "  scan: scrub repaired 0 in 0h6m with 0 errors on Mon Dec 21 02:06:17 2015",
             "config:",
             "",
             "\tNAME        STATE     READ WRITE CKSUM",
@@ -120,14 +101,12 @@ def test_status(utils_patch):
     ret["stderr"] = ""
     ret["retcode"] = 0
     mock_cmd = MagicMock(return_value=ret)
-    with patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zpool.__utils__, utils_patch
-    ):
+    with patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}):
         ret = zpool.status()
         assert "ONLINE" == ret["mypool"]["state"]
 
 
-def test_status_with_colons_in_vdevs(utils_patch):
+def test_status_with_colons_in_vdevs():
     """
     Tests successful return of status function
     """
@@ -136,7 +115,7 @@ def test_status_with_colons_in_vdevs(utils_patch):
         [
             "  pool: mypool",
             " state: ONLINE",
-            "  scan: scrub repaired 0 in 0h6m with 0 errors on Mon Dec 21 02:06:17" " 2015",
+            "  scan: scrub repaired 0 in 0h6m with 0 errors on Mon Dec 21 02:06:17 2015",
             "config:",
             "",
             "\tNAME        STATE     READ WRITE CKSUM",
@@ -151,15 +130,12 @@ def test_status_with_colons_in_vdevs(utils_patch):
     ret["stderr"] = ""
     ret["retcode"] = 0
     mock_cmd = MagicMock(return_value=ret)
-    with patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zpool.__utils__, utils_patch
-    ):
+    with patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}):
         ret = zpool.status()
         assert "ONLINE" == ret["mypool"]["state"]
 
 
-@pytest.mark.slow_test
-def test_iostat(utils_patch):
+def test_iostat():
     """
     Tests successful return of iostat function
     """
@@ -179,14 +155,12 @@ def test_iostat(utils_patch):
     ret["stderr"] = ""
     ret["retcode"] = 0
     mock_cmd = MagicMock(return_value=ret)
-    with patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zpool.__utils__, utils_patch
-    ):
+    with patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}):
         ret = zpool.iostat("mypool", parsable=False)
         assert "46.7G" == ret["mypool"]["capacity-alloc"]
 
 
-def test_iostat_parsable(utils_patch):
+def test_iostat_parsable():
     """
     Tests successful return of iostat function
 
@@ -211,14 +185,12 @@ def test_iostat_parsable(utils_patch):
     ret["stderr"] = ""
     ret["retcode"] = 0
     mock_cmd = MagicMock(return_value=ret)
-    with patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zpool.__utils__, utils_patch
-    ):
+    with patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}):
         ret = zpool.iostat("mypool", parsable=True)
         assert 50143743180 == ret["mypool"]["capacity-alloc"]
 
 
-def test_list(utils_patch):
+def test_list():
     """
     Tests successful return of list function
     """
@@ -227,9 +199,7 @@ def test_list(utils_patch):
     ret["stderr"] = ""
     ret["retcode"] = 0
     mock_cmd = MagicMock(return_value=ret)
-    with patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zpool.__utils__, utils_patch
-    ):
+    with patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}):
         ret = zpool.list_(parsable=False)
         res = OrderedDict(
             [
@@ -251,8 +221,7 @@ def test_list(utils_patch):
         assert ret == res
 
 
-@pytest.mark.slow_test
-def test_list_parsable(utils_patch):
+def test_list_parsable():
     """
     Tests successful return of list function with parsable output
     """
@@ -261,9 +230,7 @@ def test_list_parsable(utils_patch):
     ret["stderr"] = ""
     ret["retcode"] = 0
     mock_cmd = MagicMock(return_value=ret)
-    with patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zpool.__utils__, utils_patch
-    ):
+    with patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}):
         ret = zpool.list_(parsable=True)
         res = OrderedDict(
             [
@@ -285,7 +252,7 @@ def test_list_parsable(utils_patch):
         assert ret == res
 
 
-def test_get(utils_patch):
+def test_get():
     """
     Tests successful return of get function
     """
@@ -294,16 +261,13 @@ def test_get(utils_patch):
     ret["stderr"] = ""
     ret["retcode"] = 0
     mock_cmd = MagicMock(return_value=ret)
-    with patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zpool.__utils__, utils_patch
-    ):
+    with patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}):
         ret = zpool.get("mypool", "size", parsable=False)
         res = OrderedDict(OrderedDict([("size", "1.81T")]))
         assert ret == res
 
 
-@pytest.mark.slow_test
-def test_get_parsable(utils_patch):
+def test_get_parsable():
     """
     Tests successful return of get function with parsable output
     """
@@ -312,16 +276,13 @@ def test_get_parsable(utils_patch):
     ret["stderr"] = ""
     ret["retcode"] = 0
     mock_cmd = MagicMock(return_value=ret)
-    with patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zpool.__utils__, utils_patch
-    ):
+    with patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}):
         ret = zpool.get("mypool", "size", parsable=True)
         res = OrderedDict(OrderedDict([("size", 1990116046274)]))
         assert ret == res
 
 
-@pytest.mark.slow_test
-def test_get_whitespace(utils_patch):
+def test_get_whitespace():
     """
     Tests successful return of get function with a string with whitespaces
     """
@@ -330,16 +291,13 @@ def test_get_whitespace(utils_patch):
     ret["stderr"] = ""
     ret["retcode"] = 0
     mock_cmd = MagicMock(return_value=ret)
-    with patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zpool.__utils__, utils_patch
-    ):
+    with patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}):
         ret = zpool.get("mypool", "comment")
         res = OrderedDict(OrderedDict([("comment", "my testing pool")]))
         assert ret == res
 
 
-@pytest.mark.slow_test
-def test_scrub_start(utils_patch):
+def test_scrub_start():
     """
     Tests start of scrub
     """
@@ -352,14 +310,13 @@ def test_scrub_start(utils_patch):
 
     with patch.dict(zpool.__salt__, {"zpool.exists": mock_exists}), patch.dict(
         zpool.__salt__, {"cmd.run_all": mock_cmd}
-    ), patch.dict(zpool.__utils__, utils_patch):
+    ):
         ret = zpool.scrub("mypool")
         res = OrderedDict(OrderedDict([("scrubbing", True)]))
         assert ret == res
 
 
-@pytest.mark.slow_test
-def test_scrub_pause(utils_patch):
+def test_scrub_pause():
     """
     Tests pause of scrub
     """
@@ -372,14 +329,13 @@ def test_scrub_pause(utils_patch):
 
     with patch.dict(zpool.__salt__, {"zpool.exists": mock_exists}), patch.dict(
         zpool.__salt__, {"cmd.run_all": mock_cmd}
-    ), patch.dict(zpool.__utils__, utils_patch):
+    ):
         ret = zpool.scrub("mypool", pause=True)
         res = OrderedDict(OrderedDict([("scrubbing", False)]))
         assert ret == res
 
 
-@pytest.mark.slow_test
-def test_scrub_stop(utils_patch):
+def test_scrub_stop():
     """
     Tests pauze of scrub
     """
@@ -392,13 +348,13 @@ def test_scrub_stop(utils_patch):
 
     with patch.dict(zpool.__salt__, {"zpool.exists": mock_exists}), patch.dict(
         zpool.__salt__, {"cmd.run_all": mock_cmd}
-    ), patch.dict(zpool.__utils__, utils_patch):
+    ):
         ret = zpool.scrub("mypool", stop=True)
         res = OrderedDict(OrderedDict([("scrubbing", False)]))
         assert ret == res
 
 
-def test_split_success(utils_patch):
+def test_split_success():
     """
     Tests split on success
     """
@@ -408,16 +364,13 @@ def test_split_success(utils_patch):
     ret["retcode"] = 0
     mock_cmd = MagicMock(return_value=ret)
 
-    with patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zpool.__utils__, utils_patch
-    ):
+    with patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}):
         ret = zpool.split("datapool", "backuppool")
         res = OrderedDict([("split", True)])
         assert ret == res
 
 
-@pytest.mark.slow_test
-def test_split_exist_new(utils_patch):
+def test_split_exist_new():
     """
     Tests split on exising new pool
     """
@@ -427,9 +380,7 @@ def test_split_exist_new(utils_patch):
     ret["retcode"] = 1
     mock_cmd = MagicMock(return_value=ret)
 
-    with patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zpool.__utils__, utils_patch
-    ):
+    with patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}):
         ret = zpool.split("datapool", "backuppool")
         res = OrderedDict(
             [
@@ -440,7 +391,7 @@ def test_split_exist_new(utils_patch):
         assert ret == res
 
 
-def test_split_missing_pool(utils_patch):
+def test_split_missing_pool():
     """
     Tests split on missing source pool
     """
@@ -450,16 +401,13 @@ def test_split_missing_pool(utils_patch):
     ret["retcode"] = 1
     mock_cmd = MagicMock(return_value=ret)
 
-    with patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zpool.__utils__, utils_patch
-    ):
+    with patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}):
         ret = zpool.split("datapool", "backuppool")
         res = OrderedDict([("split", False), ("error", "cannot open 'datapool': no such pool")])
         assert ret == res
 
 
-@pytest.mark.slow_test
-def test_split_not_mirror(utils_patch):
+def test_split_not_mirror():
     """
     Tests split on source pool is not a mirror
     """
@@ -469,23 +417,21 @@ def test_split_not_mirror(utils_patch):
     ret["retcode"] = 1
     mock_cmd = MagicMock(return_value=ret)
 
-    with patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zpool.__utils__, utils_patch
-    ):
+    with patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}):
         ret = zpool.split("datapool", "backuppool")
         res = OrderedDict(
             [
                 ("split", False),
                 (
                     "error",
-                    "Unable to split datapool: Source pool must be composed only of" " mirrors",
+                    "Unable to split datapool: Source pool must be composed only of mirrors",
                 ),
             ]
         )
         assert ret == res
 
 
-def test_labelclear_success(utils_patch):
+def test_labelclear_success():
     """
     Tests labelclear on successful label removal
     """
@@ -495,15 +441,13 @@ def test_labelclear_success(utils_patch):
     ret["retcode"] = 0
     mock_cmd = MagicMock(return_value=ret)
 
-    with patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zpool.__utils__, utils_patch
-    ):
+    with patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}):
         ret = zpool.labelclear("/dev/rdsk/c0t0d0", force=False)
         res = OrderedDict([("labelcleared", True)])
         assert ret == res
 
 
-def test_labelclear_nodevice(utils_patch):
+def test_labelclear_nodevice():
     """
     Tests labelclear on non existing device
     """
@@ -513,9 +457,7 @@ def test_labelclear_nodevice(utils_patch):
     ret["retcode"] = 1
     mock_cmd = MagicMock(return_value=ret)
 
-    with patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zpool.__utils__, utils_patch
-    ):
+    with patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}):
         ret = zpool.labelclear("/dev/rdsk/c0t0d0", force=False)
         res = OrderedDict(
             [
@@ -529,7 +471,7 @@ def test_labelclear_nodevice(utils_patch):
         assert ret == res
 
 
-def test_labelclear_cleared(utils_patch):
+def test_labelclear_cleared():
     """
     Tests labelclear on device with no label
     """
@@ -539,9 +481,7 @@ def test_labelclear_cleared(utils_patch):
     ret["retcode"] = 1
     mock_cmd = MagicMock(return_value=ret)
 
-    with patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zpool.__utils__, utils_patch
-    ):
+    with patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}):
         ret = zpool.labelclear("/dev/rdsk/c0t0d0", force=False)
         res = OrderedDict(
             [
@@ -552,7 +492,7 @@ def test_labelclear_cleared(utils_patch):
         assert ret == res
 
 
-def test_labelclear_exported(utils_patch):
+def test_labelclear_exported():
     """
     Tests labelclear on device with from exported pool
     """
@@ -566,9 +506,7 @@ def test_labelclear_exported(utils_patch):
     )
     ret["retcode"] = 1
     mock_cmd = MagicMock(return_value=ret)
-    with patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zpool.__utils__, utils_patch
-    ):
+    with patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}):
         ret = zpool.labelclear("/dev/rdsk/c0t0d0", force=False)
         res = OrderedDict(
             [
@@ -585,7 +523,7 @@ def test_labelclear_exported(utils_patch):
 
 
 @pytest.mark.skip_if_binaries_missing("mkfile", reason="Cannot find mkfile executable")
-def test_create_file_vdev_success(utils_patch):
+def test_create_file_vdev_success():
     """
     Tests create_file_vdev when out of space
     """
@@ -595,30 +533,24 @@ def test_create_file_vdev_success(utils_patch):
     ret["retcode"] = 0
     mock_cmd = MagicMock(return_value=ret)
 
-    with patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zpool.__utils__, utils_patch
-    ):
+    with patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}):
         ret = zpool.create_file_vdev("64M", "/vdisks/disk0")
         res = OrderedDict([("/vdisks/disk0", "created")])
         assert ret == res
 
 
 @pytest.mark.skip_if_binaries_missing("mkfile", reason="Cannot find mkfile executable")
-def test_create_file_vdev_nospace(utils_patch):
+def test_create_file_vdev_nospace():
     """
     Tests create_file_vdev when out of space
     """
     ret = {}
     ret["stdout"] = ""
-    ret["stderr"] = (
-        "/vdisks/disk0: initialized 10424320 of 67108864 bytes: No space left on" " device"
-    )
+    ret["stderr"] = "/vdisks/disk0: initialized 10424320 of 67108864 bytes: No space left on device"
     ret["retcode"] = 1
     mock_cmd = MagicMock(return_value=ret)
 
-    with patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zpool.__utils__, utils_patch
-    ):
+    with patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}):
         ret = zpool.create_file_vdev("64M", "/vdisks/disk0")
         res = OrderedDict(
             [
@@ -640,7 +572,7 @@ def test_create_file_vdev_nospace(utils_patch):
         assert ret == res
 
 
-def test_export_success(utils_patch):
+def test_export_success():
     """
     Tests export
     """
@@ -650,16 +582,13 @@ def test_export_success(utils_patch):
     ret["retcode"] = 0
     mock_cmd = MagicMock(return_value=ret)
 
-    with patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zpool.__utils__, utils_patch
-    ):
+    with patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}):
         ret = zpool.export("mypool")
         res = OrderedDict([("exported", True)])
         assert ret == res
 
 
-@pytest.mark.slow_test
-def test_export_nopool(utils_patch):
+def test_export_nopool():
     """
     Tests export when the pool does not exists
     """
@@ -669,16 +598,13 @@ def test_export_nopool(utils_patch):
     ret["retcode"] = 1
     mock_cmd = MagicMock(return_value=ret)
 
-    with patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zpool.__utils__, utils_patch
-    ):
+    with patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}):
         ret = zpool.export("mypool")
         res = OrderedDict([("exported", False), ("error", "cannot open 'mypool': no such pool")])
         assert ret == res
 
 
-@pytest.mark.slow_test
-def test_import_success(utils_patch):
+def test_import_success():
     """
     Tests import
     """
@@ -688,15 +614,13 @@ def test_import_success(utils_patch):
     ret["retcode"] = 0
     mock_cmd = MagicMock(return_value=ret)
 
-    with patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zpool.__utils__, utils_patch
-    ):
+    with patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}):
         ret = zpool.import_("mypool")
         res = OrderedDict([("imported", True)])
         assert ret == res
 
 
-def test_import_duplicate(utils_patch):
+def test_import_duplicate():
     """
     Tests import with already imported pool
     """
@@ -705,15 +629,13 @@ def test_import_duplicate(utils_patch):
     ret["stderr"] = "\n".join(
         [
             "cannot import 'mypool': a pool with that name already exists",
-            "use the form 'zpool import <pool | id> <newpool>' to give it a new" " name",
+            "use the form 'zpool import <pool | id> <newpool>' to give it a new name",
         ]
     )
     ret["retcode"] = 1
     mock_cmd = MagicMock(return_value=ret)
 
-    with patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zpool.__utils__, utils_patch
-    ):
+    with patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}):
         ret = zpool.import_("mypool")
         res = OrderedDict(
             [
@@ -729,7 +651,7 @@ def test_import_duplicate(utils_patch):
         assert ret == res
 
 
-def test_import_nopool(utils_patch):
+def test_import_nopool():
     """
     Tests import
     """
@@ -739,9 +661,7 @@ def test_import_nopool(utils_patch):
     ret["retcode"] = 1
     mock_cmd = MagicMock(return_value=ret)
 
-    with patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zpool.__utils__, utils_patch
-    ):
+    with patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}):
         ret = zpool.import_("mypool")
         res = OrderedDict(
             [
@@ -752,8 +672,7 @@ def test_import_nopool(utils_patch):
         assert ret == res
 
 
-@pytest.mark.slow_test
-def test_online_success(utils_patch):
+def test_online_success():
     """
     Tests online
     """
@@ -763,15 +682,13 @@ def test_online_success(utils_patch):
     ret["retcode"] = 0
     mock_cmd = MagicMock(return_value=ret)
 
-    with patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zpool.__utils__, utils_patch
-    ):
+    with patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}):
         ret = zpool.online("mypool", "/dev/rdsk/c0t0d0")
         res = OrderedDict([("onlined", True)])
         assert ret == res
 
 
-def test_online_nodevice(utils_patch):
+def test_online_nodevice():
     """
     Tests online
     """
@@ -781,9 +698,7 @@ def test_online_nodevice(utils_patch):
     ret["retcode"] = 1
     mock_cmd = MagicMock(return_value=ret)
 
-    with patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zpool.__utils__, utils_patch
-    ):
+    with patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}):
         ret = zpool.online("mypool", "/dev/rdsk/c0t0d1")
         res = OrderedDict(
             [
@@ -794,7 +709,7 @@ def test_online_nodevice(utils_patch):
         assert ret == res
 
 
-def test_offline_success(utils_patch):
+def test_offline_success():
     """
     Tests offline
     """
@@ -804,15 +719,13 @@ def test_offline_success(utils_patch):
     ret["retcode"] = 0
     mock_cmd = MagicMock(return_value=ret)
 
-    with patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zpool.__utils__, utils_patch
-    ):
+    with patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}):
         ret = zpool.offline("mypool", "/dev/rdsk/c0t0d0")
         res = OrderedDict([("offlined", True)])
         assert ret == res
 
 
-def test_offline_nodevice(utils_patch):
+def test_offline_nodevice():
     """
     Tests offline
     """
@@ -822,9 +735,7 @@ def test_offline_nodevice(utils_patch):
     ret["retcode"] = 1
     mock_cmd = MagicMock(return_value=ret)
 
-    with patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zpool.__utils__, utils_patch
-    ):
+    with patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}):
         ret = zpool.offline("mypool", "/dev/rdsk/c0t0d1")
         res = OrderedDict(
             [
@@ -838,7 +749,7 @@ def test_offline_nodevice(utils_patch):
         assert ret == res
 
 
-def test_offline_noreplica(utils_patch):
+def test_offline_noreplica():
     """
     Tests offline
     """
@@ -848,9 +759,7 @@ def test_offline_noreplica(utils_patch):
     ret["retcode"] = 1
     mock_cmd = MagicMock(return_value=ret)
 
-    with patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zpool.__utils__, utils_patch
-    ):
+    with patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}):
         ret = zpool.offline("mypool", "/dev/rdsk/c0t0d1")
         res = OrderedDict(
             [
@@ -861,8 +770,7 @@ def test_offline_noreplica(utils_patch):
         assert ret == res
 
 
-@pytest.mark.slow_test
-def test_reguid_success(utils_patch):
+def test_reguid_success():
     """
     Tests reguid
     """
@@ -872,16 +780,13 @@ def test_reguid_success(utils_patch):
     ret["retcode"] = 0
     mock_cmd = MagicMock(return_value=ret)
 
-    with patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zpool.__utils__, utils_patch
-    ):
+    with patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}):
         ret = zpool.reguid("mypool")
         res = OrderedDict([("reguided", True)])
         assert ret == res
 
 
-@pytest.mark.slow_test
-def test_reguid_nopool(utils_patch):
+def test_reguid_nopool():
     """
     Tests reguid with missing pool
     """
@@ -891,16 +796,13 @@ def test_reguid_nopool(utils_patch):
     ret["retcode"] = 1
     mock_cmd = MagicMock(return_value=ret)
 
-    with patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zpool.__utils__, utils_patch
-    ):
+    with patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}):
         ret = zpool.reguid("mypool")
         res = OrderedDict([("reguided", False), ("error", "cannot open 'mypool': no such pool")])
         assert ret == res
 
 
-@pytest.mark.slow_test
-def test_reopen_success(utils_patch):
+def test_reopen_success():
     """
     Tests reopen
     """
@@ -910,15 +812,13 @@ def test_reopen_success(utils_patch):
     ret["retcode"] = 0
     mock_cmd = MagicMock(return_value=ret)
 
-    with patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zpool.__utils__, utils_patch
-    ):
+    with patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}):
         ret = zpool.reopen("mypool")
         res = OrderedDict([("reopened", True)])
         assert ret == res
 
 
-def test_reopen_nopool(utils_patch):
+def test_reopen_nopool():
     """
     Tests reopen with missing pool
     """
@@ -928,15 +828,13 @@ def test_reopen_nopool(utils_patch):
     ret["retcode"] = 1
     mock_cmd = MagicMock(return_value=ret)
 
-    with patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zpool.__utils__, utils_patch
-    ):
+    with patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}):
         ret = zpool.reopen("mypool")
         res = OrderedDict([("reopened", False), ("error", "cannot open 'mypool': no such pool")])
         assert ret == res
 
 
-def test_upgrade_success(utils_patch):
+def test_upgrade_success():
     """
     Tests upgrade
     """
@@ -946,15 +844,13 @@ def test_upgrade_success(utils_patch):
     ret["retcode"] = 0
     mock_cmd = MagicMock(return_value=ret)
 
-    with patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zpool.__utils__, utils_patch
-    ):
+    with patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}):
         ret = zpool.upgrade("mypool")
         res = OrderedDict([("upgraded", True)])
         assert ret == res
 
 
-def test_upgrade_nopool(utils_patch):
+def test_upgrade_nopool():
     """
     Tests upgrade with missing pool
     """
@@ -964,16 +860,13 @@ def test_upgrade_nopool(utils_patch):
     ret["retcode"] = 1
     mock_cmd = MagicMock(return_value=ret)
 
-    with patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zpool.__utils__, utils_patch
-    ):
+    with patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}):
         ret = zpool.upgrade("mypool")
         res = OrderedDict([("upgraded", False), ("error", "cannot open 'mypool': no such pool")])
         assert ret == res
 
 
-@pytest.mark.slow_test
-def test_history_success(utils_patch):
+def test_history_success():
     """
     Tests history
     """
@@ -982,16 +875,14 @@ def test_history_success(utils_patch):
         [
             "History for 'mypool':",
             "2018-01-18.16:56:12 zpool create -f mypool /dev/rdsk/c0t0d0",
-            "2018-01-19.16:01:55 zpool attach -f mypool /dev/rdsk/c0t0d0" " /dev/rdsk/c0t0d1",
+            "2018-01-19.16:01:55 zpool attach -f mypool /dev/rdsk/c0t0d0 /dev/rdsk/c0t0d1",
         ]
     )
     ret["stderr"] = ""
     ret["retcode"] = 0
     mock_cmd = MagicMock(return_value=ret)
 
-    with patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zpool.__utils__, utils_patch
-    ):
+    with patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}):
         ret = zpool.history("mypool")
         res = OrderedDict(
             [
@@ -1005,7 +896,7 @@ def test_history_success(utils_patch):
                             ),
                             (
                                 "2018-01-19.16:01:55",
-                                "zpool attach -f mypool /dev/rdsk/c0t0d0" " /dev/rdsk/c0t0d1",
+                                "zpool attach -f mypool /dev/rdsk/c0t0d0 /dev/rdsk/c0t0d1",
                             ),
                         ]
                     ),
@@ -1015,7 +906,7 @@ def test_history_success(utils_patch):
         assert ret == res
 
 
-def test_history_nopool(utils_patch):
+def test_history_nopool():
     """
     Tests history with missing pool
     """
@@ -1025,15 +916,13 @@ def test_history_nopool(utils_patch):
     ret["retcode"] = 1
     mock_cmd = MagicMock(return_value=ret)
 
-    with patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zpool.__utils__, utils_patch
-    ):
+    with patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}):
         ret = zpool.history("mypool")
         res = OrderedDict([("error", "cannot open 'mypool': no such pool")])
         assert ret == res
 
 
-def test_clear_success(utils_patch):
+def test_clear_success():
     """
     Tests clear
     """
@@ -1043,15 +932,13 @@ def test_clear_success(utils_patch):
     ret["retcode"] = 0
     mock_cmd = MagicMock(return_value=ret)
 
-    with patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zpool.__utils__, utils_patch
-    ):
+    with patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}):
         ret = zpool.clear("mypool")
         res = OrderedDict([("cleared", True)])
         assert ret == res
 
 
-def test_clear_nopool(utils_patch):
+def test_clear_nopool():
     """
     Tests clear with missing pool
     """
@@ -1061,14 +948,13 @@ def test_clear_nopool(utils_patch):
     ret["retcode"] = 1
     mock_cmd = MagicMock(return_value=ret)
 
-    with patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zpool.__utils__, utils_patch
-    ):
+    with patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}):
         ret = zpool.clear("mypool")
         res = OrderedDict([("cleared", False), ("error", "cannot open 'mypool': no such pool")])
+        assert ret == res
 
 
-def test_clear_nodevice(utils_patch):
+def test_clear_nodevice():
     """
     Tests clear with non existign device
     """
@@ -1078,16 +964,14 @@ def test_clear_nodevice(utils_patch):
     ret["retcode"] = 1
     mock_cmd = MagicMock(return_value=ret)
 
-    with patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zpool.__utils__, utils_patch
-    ):
+    with patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}):
         ret = zpool.clear("mypool", "/dev/rdsk/c0t0d0")
         res = OrderedDict(
             [
                 ("cleared", False),
                 (
                     "error",
-                    "cannot clear errors for /dev/rdsk/c0t0d0: no such device in" " pool",
+                    "cannot clear errors for /dev/rdsk/c0t0d0: no such device in pool",
                 ),
             ]
         )

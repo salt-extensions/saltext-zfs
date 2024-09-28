@@ -123,11 +123,11 @@ def _property_parse_cmd(cmd, alias=None):
         if not prop_data:
             continue
         # NOTE: parse header
-        elif prop_data[0] == "property":
+        if prop_data[0] == "property":
             prop_hdr = prop_data
             continue
         # NOTE: skip lines after data
-        elif not prop_hdr or prop_data[1] not in ["no", "yes"]:
+        if not prop_hdr or prop_data[1] not in ["no", "yes"]:
             continue
 
         # NOTE: create property dict

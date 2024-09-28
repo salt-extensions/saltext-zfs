@@ -12,32 +12,25 @@ from unittest.mock import MagicMock
 from unittest.mock import patch
 
 import pytest
-import salt.loader
 from salt.utils.dateutils import strftime
 from salt.utils.odict import OrderedDict
 
-import saltext.zfs.modules.zfs as zfs
-import saltext.zfs.utils.zfs
+from saltext.zfs.modules import zfs
 from tests.support.zfs import ZFSMockData
 
-pytestmark = [
-    pytest.mark.slow_test,
-]
 
-
-@pytest.fixture
+@pytest.fixture(autouse=True)
 def utils_patch():
-    return ZFSMockData().get_patched_utils()
+    with patch.multiple("saltext.zfs.utils.zfs", **ZFSMockData().get_patched_utils()):
+        yield
 
 
 @pytest.fixture
 def configure_loader_modules(minion_opts):
-    utils = salt.loader.utils(minion_opts, whitelist=["zfs", "args", "systemd", "path", "platform"])
-    zfs_obj = {zfs: {"__opts__": minion_opts, "__utils__": utils}}
-    return zfs_obj
+    return {zfs: {"__opts__": minion_opts}}
 
 
-def test_exists_success(utils_patch):
+def test_exists_success():
     """
     Tests successful return of exists function
     """
@@ -49,13 +42,11 @@ def test_exists_success(utils_patch):
     ret["stderr"] = ""
     ret["retcode"] = 0
     mock_cmd = MagicMock(return_value=ret)
-    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zfs.__utils__, utils_patch
-    ):
+    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}):
         assert zfs.exists("myzpool/mydataset")
 
 
-def test_exists_failure_not_exists(utils_patch):
+def test_exists_failure_not_exists():
     """
     Tests unsuccessful return of exists function if dataset does not exist
     """
@@ -64,13 +55,11 @@ def test_exists_failure_not_exists(utils_patch):
     ret["stderr"] = "cannot open 'myzpool/mydataset': dataset does not exist"
     ret["retcode"] = 1
     mock_cmd = MagicMock(return_value=ret)
-    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zfs.__utils__, utils_patch
-    ):
+    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}):
         assert not zfs.exists("myzpool/mydataset")
 
 
-def test_exists_failure_invalid_name(utils_patch):
+def test_exists_failure_invalid_name():
     """
     Tests unsuccessful return of exists function if dataset name is invalid
     """
@@ -79,13 +68,11 @@ def test_exists_failure_invalid_name(utils_patch):
     ret["stderr"] = "cannot open 'myzpool/': invalid dataset name"
     ret["retcode"] = 1
     mock_cmd = MagicMock(return_value=ret)
-    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zfs.__utils__, utils_patch
-    ):
+    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}):
         assert not zfs.exists("myzpool/")
 
 
-def test_create_success(utils_patch):
+def test_create_success():
     """
     Tests successful return of create function on ZFS file system creation
     """
@@ -95,13 +82,11 @@ def test_create_success(utils_patch):
     ret["stderr"] = ""
     ret["retcode"] = 0
     mock_cmd = MagicMock(return_value=ret)
-    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zfs.__utils__, utils_patch
-    ):
+    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}):
         assert res == zfs.create("myzpool/mydataset")
 
 
-def test_create_success_with_create_parent(utils_patch):
+def test_create_success_with_create_parent():
     """
     Tests successful return of create function when ``create_parent=True``
     """
@@ -111,13 +96,11 @@ def test_create_success_with_create_parent(utils_patch):
     ret["stderr"] = ""
     ret["retcode"] = 0
     mock_cmd = MagicMock(return_value=ret)
-    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zfs.__utils__, utils_patch
-    ):
+    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}):
         assert res == zfs.create("myzpool/mydataset/mysubdataset", create_parent=True)
 
 
-def test_create_success_with_properties(utils_patch):
+def test_create_success_with_properties():
     """
     Tests successful return of create function on ZFS file system creation (with properties)
     """
@@ -127,16 +110,14 @@ def test_create_success_with_properties(utils_patch):
     ret["stderr"] = ""
     ret["retcode"] = 0
     mock_cmd = MagicMock(return_value=ret)
-    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zfs.__utils__, utils_patch
-    ):
+    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}):
         assert res == zfs.create(
             "myzpool/mydataset",
             properties={"mountpoint": "/export/zfs", "sharenfs": "on"},
         )
 
 
-def test_create_error_missing_dataset(utils_patch):
+def test_create_error_missing_dataset():
     """
     Tests unsuccessful return of create function if dataset name is missing
     """
@@ -151,13 +132,11 @@ def test_create_error_missing_dataset(utils_patch):
     ret["stderr"] = "cannot create 'myzpool': missing dataset name"
     ret["retcode"] = 1
     mock_cmd = MagicMock(return_value=ret)
-    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zfs.__utils__, utils_patch
-    ):
+    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}):
         assert res == zfs.create("myzpool")
 
 
-def test_create_error_trailing_slash(utils_patch):
+def test_create_error_trailing_slash():
     """
     Tests unsuccessful return of create function if trailing slash in name is present
     """
@@ -172,13 +151,11 @@ def test_create_error_trailing_slash(utils_patch):
     ret["stderr"] = "cannot create 'myzpool/': trailing slash in name"
     ret["retcode"] = 1
     mock_cmd = MagicMock(return_value=ret)
-    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zfs.__utils__, utils_patch
-    ):
+    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}):
         assert res == zfs.create("myzpool/")
 
 
-def test_create_error_no_such_pool(utils_patch):
+def test_create_error_no_such_pool():
     """
     Tests unsuccessful return of create function if the pool is not present
     """
@@ -193,13 +170,11 @@ def test_create_error_no_such_pool(utils_patch):
     ret["stderr"] = "cannot create 'myzpool/mydataset': no such pool 'myzpool'"
     ret["retcode"] = 1
     mock_cmd = MagicMock(return_value=ret)
-    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zfs.__utils__, utils_patch
-    ):
+    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}):
         assert res == zfs.create("myzpool/mydataset")
 
 
-def test_create_error_missing_parent(utils_patch):
+def test_create_error_missing_parent():
     """
     Tests unsuccessful return of create function if the parent datasets do not exist
     """
@@ -208,7 +183,7 @@ def test_create_error_missing_parent(utils_patch):
             ("created", False),
             (
                 "error",
-                "cannot create 'myzpool/mydataset/mysubdataset': parent does not" " exist",
+                "cannot create 'myzpool/mydataset/mysubdataset': parent does not exist",
             ),
         ]
     )
@@ -217,13 +192,11 @@ def test_create_error_missing_parent(utils_patch):
     ret["stderr"] = "cannot create 'myzpool/mydataset/mysubdataset': parent does not exist"
     ret["retcode"] = 1
     mock_cmd = MagicMock(return_value=ret)
-    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zfs.__utils__, utils_patch
-    ):
+    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}):
         assert res == zfs.create("myzpool/mydataset/mysubdataset")
 
 
-def test_destroy_success(utils_patch):
+def test_destroy_success():
     """
     Tests successful return of destroy function on ZFS file system destruction
     """
@@ -233,13 +206,11 @@ def test_destroy_success(utils_patch):
     ret["stderr"] = ""
     ret["retcode"] = 0
     mock_cmd = MagicMock(return_value=ret)
-    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zfs.__utils__, utils_patch
-    ):
+    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}):
         assert res == zfs.destroy("myzpool/mydataset")
 
 
-def test_destroy_error_not_exists(utils_patch):
+def test_destroy_error_not_exists():
     """
     Tests failure return of destroy function on ZFS file system destruction
     """
@@ -254,13 +225,11 @@ def test_destroy_error_not_exists(utils_patch):
     ret["stderr"] = "cannot open 'myzpool/mydataset': dataset does not exist"
     ret["retcode"] = 1
     mock_cmd = MagicMock(return_value=ret)
-    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zfs.__utils__, utils_patch
-    ):
+    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}):
         assert res == zfs.destroy("myzpool/mydataset")
 
 
-def test_destroy_error_has_children(utils_patch):
+def test_destroy_error_has_children():
     """
     Tests failure return of destroy function on ZFS file system destruction
     """
@@ -271,7 +240,7 @@ def test_destroy_error_has_children(utils_patch):
                 "error",
                 "\n".join(
                     [
-                        "cannot destroy 'myzpool/mydataset': filesystem has" " children",
+                        "cannot destroy 'myzpool/mydataset': filesystem has children",
                         "use 'recursive=True' to destroy the following datasets:",
                         "myzpool/mydataset@snapshot",
                     ]
@@ -290,14 +259,11 @@ def test_destroy_error_has_children(utils_patch):
     )
     ret["retcode"] = 1
     mock_cmd = MagicMock(return_value=ret)
-    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zfs.__utils__, utils_patch
-    ):
+    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}):
         assert res == zfs.destroy("myzpool/mydataset")
 
 
-@pytest.mark.slow_test
-def test_rename_success(utils_patch):
+def test_rename_success():
     """
     Tests successful return of rename function
     """
@@ -307,13 +273,11 @@ def test_rename_success(utils_patch):
     ret["stderr"] = ""
     ret["retcode"] = 0
     mock_cmd = MagicMock(return_value=ret)
-    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zfs.__utils__, utils_patch
-    ):
+    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}):
         assert res == zfs.rename("myzpool/mydataset", "myzpool/newdataset")
 
 
-def test_rename_error_not_exists(utils_patch):
+def test_rename_error_not_exists():
     """
     Tests failure return of rename function
     """
@@ -328,13 +292,11 @@ def test_rename_error_not_exists(utils_patch):
     ret["stderr"] = "cannot open 'myzpool/mydataset': dataset does not exist"
     ret["retcode"] = 1
     mock_cmd = MagicMock(return_value=ret)
-    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zfs.__utils__, utils_patch
-    ):
+    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}):
         assert res == zfs.rename("myzpool/mydataset", "myzpool/newdataset")
 
 
-def test_list_success(utils_patch):
+def test_list_success():
     """
     Tests zfs list
     """
@@ -358,14 +320,11 @@ def test_list_success(utils_patch):
     ret["stdout"] = "myzpool\t791G\t1007G\t96K\t/myzpool"
     ret["stderr"] = ""
     mock_cmd = MagicMock(return_value=ret)
-    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zfs.__utils__, utils_patch
-    ):
+    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}):
         assert res == zfs.list_("myzpool")
 
 
-@pytest.mark.slow_test
-def test_list_parsable_success(utils_patch):
+def test_list_parsable_success():
     """
     Tests zfs list with parsable set to False
     """
@@ -389,13 +348,11 @@ def test_list_parsable_success(utils_patch):
     ret["stdout"] = "myzpool\t791G\t1007G\t96K\t/myzpool"
     ret["stderr"] = ""
     mock_cmd = MagicMock(return_value=ret)
-    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zfs.__utils__, utils_patch
-    ):
+    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}):
         assert res == zfs.list_("myzpool", parsable=False)
 
 
-def test_list_custom_success(utils_patch):
+def test_list_custom_success():
     """
     Tests zfs list
     """
@@ -419,13 +376,11 @@ def test_list_custom_success(utils_patch):
     ret["stdout"] = "myzpool\ton\t791G\t1007G\toff"
     ret["stderr"] = ""
     mock_cmd = MagicMock(return_value=ret)
-    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zfs.__utils__, utils_patch
-    ):
+    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}):
         assert res == zfs.list_("myzpool", properties="canmount,used,avail,compression")
 
 
-def test_list_custom_parsable_success(utils_patch):
+def test_list_custom_parsable_success():
     """
     Tests zfs list
     """
@@ -449,9 +404,7 @@ def test_list_custom_parsable_success(utils_patch):
     ret["stdout"] = "myzpool\ton\t791G\t1007G\toff"
     ret["stderr"] = ""
     mock_cmd = MagicMock(return_value=ret)
-    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zfs.__utils__, utils_patch
-    ):
+    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}):
         assert res == zfs.list_(
             "myzpool",
             properties="canmount,used,avail,compression",
@@ -459,7 +412,7 @@ def test_list_custom_parsable_success(utils_patch):
         )
 
 
-def test_list_error_no_dataset(utils_patch):
+def test_list_error_no_dataset():
     """
     Tests zfs list
     """
@@ -469,14 +422,11 @@ def test_list_error_no_dataset(utils_patch):
     ret["stdout"] = "cannot open 'myzpool': dataset does not exist"
     ret["stderr"] = ""
     mock_cmd = MagicMock(return_value=ret)
-    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zfs.__utils__, utils_patch
-    ):
+    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}):
         assert res == zfs.list_("myzpool")
 
 
-@pytest.mark.slow_test
-def test_list_mount_success(utils_patch):
+def test_list_mount_success():
     """
     Tests zfs list_mount
     """
@@ -486,13 +436,11 @@ def test_list_mount_success(utils_patch):
     ret["stdout"] = "\n".join(["myzpool/data\t\t\t\t/data", "myzpool/data/ares\t\t\t/data/ares"])
     ret["stderr"] = ""
     mock_cmd = MagicMock(return_value=ret)
-    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zfs.__utils__, utils_patch
-    ):
+    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}):
         assert res == zfs.list_mount()
 
 
-def test_mount_success(utils_patch):
+def test_mount_success():
     """
     Tests zfs mount of filesystem
     """
@@ -502,13 +450,11 @@ def test_mount_success(utils_patch):
     ret["stderr"] = ""
     ret["retcode"] = 0
     mock_cmd = MagicMock(return_value=ret)
-    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zfs.__utils__, utils_patch
-    ):
+    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}):
         assert res == zfs.mount("myzpool/mydataset")
 
 
-def test_mount_failure(utils_patch):
+def test_mount_failure():
     """
     Tests zfs mount of already mounted filesystem
     """
@@ -526,13 +472,11 @@ def test_mount_failure(utils_patch):
     ret["stderr"] = "cannot mount 'myzpool/mydataset': filesystem already mounted"
     ret["retcode"] = 1
     mock_cmd = MagicMock(return_value=ret)
-    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zfs.__utils__, utils_patch
-    ):
+    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}):
         assert res == zfs.mount("myzpool/mydataset")
 
 
-def test_unmount_success(utils_patch):
+def test_unmount_success():
     """
     Tests zfs unmount of filesystem
     """
@@ -542,13 +486,11 @@ def test_unmount_success(utils_patch):
     ret["stderr"] = ""
     ret["retcode"] = 0
     mock_cmd = MagicMock(return_value=ret)
-    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zfs.__utils__, utils_patch
-    ):
+    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}):
         assert res == zfs.unmount("myzpool/mydataset")
 
 
-def test_unmount_failure(utils_patch):
+def test_unmount_failure():
     """
     Tests zfs unmount of already mounted filesystem
     """
@@ -563,26 +505,22 @@ def test_unmount_failure(utils_patch):
     ret["stderr"] = "cannot mount 'myzpool/mydataset': not currently mounted"
     ret["retcode"] = 1
     mock_cmd = MagicMock(return_value=ret)
-    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zfs.__utils__, utils_patch
-    ):
+    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}):
         assert res == zfs.unmount("myzpool/mydataset")
 
 
-def test_inherit_success(utils_patch):
+def test_inherit_success():
     """
     Tests zfs inherit of compression property
     """
     res = OrderedDict([("inherited", True)])
     ret = {"pid": 45193, "retcode": 0, "stderr": "", "stdout": ""}
     mock_cmd = MagicMock(return_value=ret)
-    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zfs.__utils__, utils_patch
-    ):
+    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}):
         assert res == zfs.inherit("compression", "myzpool/mydataset")
 
 
-def test_inherit_failure(utils_patch):
+def test_inherit_failure():
     """
     Tests zfs inherit of canmount
     """
@@ -599,14 +537,12 @@ def test_inherit_failure(utils_patch):
         "stdout": "",
     }
     mock_cmd = MagicMock(return_value=ret)
-    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zfs.__utils__, utils_patch
-    ):
+    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}):
         assert res == zfs.inherit("canmount", "myzpool/mydataset")
 
 
-@pytest.mark.slow_test
-def test_diff(utils_patch):
+@pytest.mark.s
+def test_diff():
     """
     Tests zfs diff
     """
@@ -626,13 +562,11 @@ def test_diff(utils_patch):
     )
     ret["stderr"] = ""
     mock_cmd = MagicMock(return_value=ret)
-    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zfs.__utils__, utils_patch
-    ):
+    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}):
         assert res == zfs.diff("myzpool/mydataset@yesterday", "myzpool/mydataset")
 
 
-def test_diff_parsed_time(utils_patch):
+def test_diff_parsed_time():
     """
     Tests zfs diff
     """
@@ -665,28 +599,22 @@ def test_diff_parsed_time(utils_patch):
     )
     ret["stderr"] = ""
     mock_cmd = MagicMock(return_value=ret)
-    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zfs.__utils__, utils_patch
-    ):
+    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}):
         assert res == zfs.diff("myzpool/data@yesterday", "myzpool/data", parsable=False)
 
 
-@pytest.mark.slow_test
-def test_rollback_success(utils_patch):
+def test_rollback_success():
     """
     Tests zfs rollback success
     """
     res = OrderedDict([("rolledback", True)])
     ret = {"pid": 56502, "retcode": 0, "stderr": "", "stdout": ""}
     mock_cmd = MagicMock(return_value=ret)
-    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zfs.__utils__, utils_patch
-    ):
+    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}):
         assert res == zfs.rollback("myzpool/mydataset@yesterday")
 
 
-@pytest.mark.slow_test
-def test_rollback_failure(utils_patch):
+def test_rollback_failure():
     """
     Tests zfs rollback failure
     """
@@ -718,26 +646,22 @@ def test_rollback_failure(utils_patch):
         "stdout": "",
     }
     mock_cmd = MagicMock(return_value=ret)
-    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zfs.__utils__, utils_patch
-    ):
+    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}):
         assert res == zfs.rollback("myzpool/mydataset@yesterday")
 
 
-def test_clone_success(utils_patch):
+def test_clone_success():
     """
     Tests zfs clone success
     """
     res = OrderedDict([("cloned", True)])
     ret = {"pid": 64532, "retcode": 0, "stderr": "", "stdout": ""}
     mock_cmd = MagicMock(return_value=ret)
-    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zfs.__utils__, utils_patch
-    ):
+    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}):
         assert res == zfs.clone("myzpool/mydataset@yesterday", "myzpool/yesterday")
 
 
-def test_clone_failure(utils_patch):
+def test_clone_failure():
     """
     Tests zfs clone failure
     """
@@ -757,27 +681,22 @@ def test_clone_failure(utils_patch):
         "stdout": "",
     }
     mock_cmd = MagicMock(return_value=ret)
-    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zfs.__utils__, utils_patch
-    ):
+    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}):
         assert res == zfs.clone("myzpool/mydataset@yesterday", "myzpool/archive/yesterday")
 
 
-@pytest.mark.slow_test
-def test_promote_success(utils_patch):
+def test_promote_success():
     """
     Tests zfs promote success
     """
     res = OrderedDict([("promoted", True)])
     ret = {"pid": 69075, "retcode": 0, "stderr": "", "stdout": ""}
     mock_cmd = MagicMock(return_value=ret)
-    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zfs.__utils__, utils_patch
-    ):
+    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}):
         assert res == zfs.promote("myzpool/yesterday")
 
 
-def test_promote_failure(utils_patch):
+def test_promote_failure():
     """
     Tests zfs promote failure
     """
@@ -797,14 +716,11 @@ def test_promote_failure(utils_patch):
         "stdout": "",
     }
     mock_cmd = MagicMock(return_value=ret)
-    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zfs.__utils__, utils_patch
-    ):
+    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}):
         assert res == zfs.promote("myzpool/yesterday")
 
 
-@pytest.mark.slow_test
-def test_bookmark_success(utils_patch):
+def test_bookmark_success():
     """
     Tests zfs bookmark success
     """
@@ -812,14 +728,11 @@ def test_bookmark_success(utils_patch):
         res = OrderedDict([("bookmarked", True)])
         ret = {"pid": 20990, "retcode": 0, "stderr": "", "stdout": ""}
         mock_cmd = MagicMock(return_value=ret)
-        with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-            zfs.__utils__, utils_patch
-        ):
+        with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}):
             assert res == zfs.bookmark("myzpool/mydataset@yesterday", "myzpool/mydataset#important")
 
 
-@pytest.mark.slow_test
-def test_holds_success(utils_patch):
+def test_holds_success():
     """
     Tests zfs holds success
     """
@@ -839,13 +752,11 @@ def test_holds_success(utils_patch):
         ),
     }
     mock_cmd = MagicMock(return_value=ret)
-    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zfs.__utils__, utils_patch
-    ):
+    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}):
         assert res == zfs.holds("myzpool/mydataset@baseline")
 
 
-def test_holds_failure(utils_patch):
+def test_holds_failure():
     """
     Tests zfs holds failure
     """
@@ -864,22 +775,18 @@ def test_holds_failure(utils_patch):
         "stdout": "no datasets available",
     }
     mock_cmd = MagicMock(return_value=ret)
-    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zfs.__utils__, utils_patch
-    ):
+    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}):
         assert res == zfs.holds("myzpool/mydataset@baseline")
 
 
-def test_hold_success(utils_patch):
+def test_hold_success():
     """
     Tests zfs hold success
     """
     res = OrderedDict([("held", True)])
     ret = {"pid": 50876, "retcode": 0, "stderr": "", "stdout": ""}
     mock_cmd = MagicMock(return_value=ret)
-    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zfs.__utils__, utils_patch
-    ):
+    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}):
         assert res == zfs.hold(
             "important",
             "myzpool/mydataset@baseline",
@@ -887,7 +794,7 @@ def test_hold_success(utils_patch):
         )
 
 
-def test_hold_failure(utils_patch):
+def test_hold_failure():
     """
     Tests zfs hold failure
     """
@@ -911,22 +818,18 @@ def test_hold_failure(utils_patch):
         "stdout": "",
     }
     mock_cmd = MagicMock(return_value=ret)
-    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zfs.__utils__, utils_patch
-    ):
+    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}):
         assert res == zfs.hold("important", "myzpool/mydataset@baseline")
 
 
-def test_release_success(utils_patch):
+def test_release_success():
     """
     Tests zfs release success
     """
     res = OrderedDict([("released", True)])
     ret = {"pid": 50876, "retcode": 0, "stderr": "", "stdout": ""}
     mock_cmd = MagicMock(return_value=ret)
-    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zfs.__utils__, utils_patch
-    ):
+    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}):
         assert res == zfs.release(
             "important",
             "myzpool/mydataset@baseline",
@@ -934,8 +837,7 @@ def test_release_success(utils_patch):
         )
 
 
-@pytest.mark.slow_test
-def test_release_failure(utils_patch):
+def test_release_failure():
     """
     Tests zfs release failure
     """
@@ -959,26 +861,22 @@ def test_release_failure(utils_patch):
         "stdout": "",
     }
     mock_cmd = MagicMock(return_value=ret)
-    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zfs.__utils__, utils_patch
-    ):
+    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}):
         assert res == zfs.release("important", "myzpool/mydataset@baseline")
 
 
-def test_snapshot_success(utils_patch):
+def test_snapshot_success():
     """
     Tests zfs snapshot success
     """
     res = OrderedDict([("snapshotted", True)])
     ret = {"pid": 69125, "retcode": 0, "stderr": "", "stdout": ""}
     mock_cmd = MagicMock(return_value=ret)
-    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zfs.__utils__, utils_patch
-    ):
+    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}):
         assert res == zfs.snapshot("myzpool/mydataset@baseline")
 
 
-def test_snapshot_failure(utils_patch):
+def test_snapshot_failure():
     """
     Tests zfs snapshot failure
     """
@@ -987,26 +885,22 @@ def test_snapshot_failure(utils_patch):
             ("snapshotted", False),
             (
                 "error",
-                "cannot create snapshot 'myzpool/mydataset@baseline': dataset" " already exists",
+                "cannot create snapshot 'myzpool/mydataset@baseline': dataset already exists",
             ),
         ]
     )
     ret = {
         "pid": 68526,
         "retcode": 1,
-        "stderr": (
-            "cannot create snapshot 'myzpool/mydataset@baseline': dataset already" " exists"
-        ),
+        "stderr": ("cannot create snapshot 'myzpool/mydataset@baseline': dataset already exists"),
         "stdout": "",
     }
     mock_cmd = MagicMock(return_value=ret)
-    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zfs.__utils__, utils_patch
-    ):
+    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}):
         assert res == zfs.snapshot("myzpool/mydataset@baseline")
 
 
-def test_snapshot_failure2(utils_patch):
+def test_snapshot_failure2():
     """
     Tests zfs snapshot failure
     """
@@ -1028,27 +922,23 @@ def test_snapshot_failure2(utils_patch):
         "stdout": "",
     }
     mock_cmd = MagicMock(return_value=ret)
-    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zfs.__utils__, utils_patch
-    ):
+    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}):
         assert res == zfs.snapshot("myzpool/mydataset@baseline")
 
 
-def test_set_success(utils_patch):
+def test_set_success():
     """
     Tests zfs set success
     """
     res = OrderedDict([("set", True)])
     ret = {"pid": 79736, "retcode": 0, "stderr": "", "stdout": ""}
     mock_cmd = MagicMock(return_value=ret)
-    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zfs.__utils__, utils_patch
-    ):
+    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}):
         assert res == zfs.set("myzpool/mydataset", compression="lz4")
 
 
-@pytest.mark.slow_test
-def test_set_failure(utils_patch):
+@pytest.mark.slow_tes
+def test_set_failure():
     """
     Tests zfs set failure
     """
@@ -1072,13 +962,11 @@ def test_set_failure(utils_patch):
         "stdout": "",
     }
     mock_cmd = MagicMock(return_value=ret)
-    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zfs.__utils__, utils_patch
-    ):
+    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}):
         assert res == zfs.set("myzpool/mydataset", canmount="lz4")
 
 
-def test_get_success(utils_patch):
+def test_get_success():
     """
     Tests zfs get success
     """
@@ -1097,13 +985,11 @@ def test_get_success(utils_patch):
         "stdout": "myzpool\tused\t906238099456",
     }
     mock_cmd = MagicMock(return_value=ret)
-    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zfs.__utils__, utils_patch
-    ):
+    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}):
         assert res == zfs.get("myzpool", properties="used", fields="value")
 
 
-def test_get_parsable_success(utils_patch):
+def test_get_parsable_success():
     """
     Tests zfs get with parsable output
     """
@@ -1115,7 +1001,5 @@ def test_get_parsable_success(utils_patch):
         "stdout": "myzpool\tused\t906238099456",
     }
     mock_cmd = MagicMock(return_value=ret)
-    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
-        zfs.__utils__, utils_patch
-    ):
+    with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}):
         assert res == zfs.get("myzpool", properties="used", fields="value", parsable=False)

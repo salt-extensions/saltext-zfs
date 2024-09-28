@@ -880,19 +880,17 @@ def _schedule_snapshot_prepare(dataset, prefix, snapshots):
             ## NOTE: compare current timestamp to timestamp from snapshot
             if hold == "minute" and timestamp_now <= timestamp:
                 continue
-            elif hold == "hour" and timestamp_now.replace(**comp_hour) <= timestamp.replace(
+            if hold == "hour" and timestamp_now.replace(**comp_hour) <= timestamp.replace(
                 **comp_hour
             ):
                 continue
-            elif hold == "day" and timestamp_now.replace(**comp_day) <= timestamp.replace(
-                **comp_day
-            ):
+            if hold == "day" and timestamp_now.replace(**comp_day) <= timestamp.replace(**comp_day):
                 continue
-            elif hold == "month" and timestamp_now.replace(**comp_month) <= timestamp.replace(
+            if hold == "month" and timestamp_now.replace(**comp_month) <= timestamp.replace(
                 **comp_month
             ):
                 continue
-            elif hold == "year" and timestamp_now.replace(**comp_year) <= timestamp.replace(
+            if hold == "year" and timestamp_now.replace(**comp_year) <= timestamp.replace(
                 **comp_year
             ):
                 continue

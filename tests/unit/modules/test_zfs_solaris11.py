@@ -6,22 +6,13 @@ from unittest.mock import MagicMock
 from unittest.mock import patch
 
 import pytest
-import salt.loader
 
-import saltext.zfs.modules.zfs as zfs
-import saltext.zfs.utils.zfs
-from tests.support.zfs import ZFSMockData
-
-
-@pytest.fixture
-def utils_patch():
-    return ZFSMockData().get_patched_utils()
+from saltext.zfs.modules import zfs
 
 
 @pytest.fixture
 def configure_loader_modules(minion_opts):
-    utils = salt.loader.utils(minion_opts, whitelist=["zfs"])
-    zfs_obj = {
+    return {
         zfs: {
             "__opts__": minion_opts,
             "__grains__": {
@@ -31,11 +22,8 @@ def configure_loader_modules(minion_opts):
                 "kernel": "SunOS",
                 "kernelrelease": 5.11,
             },
-            "__utils__": utils,
         }
     }
-
-    return zfs_obj
 
 
 @pytest.mark.skip_unless_on_sunos

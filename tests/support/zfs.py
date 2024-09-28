@@ -13,6 +13,12 @@ import saltext.zfs.utils.zfs
 
 class ZFSMockData:
     def __init__(self):
+        # Save references to original functions because they will be patched
+        self._utils_from_auto = saltext.zfs.utils.zfs.from_auto
+        self._utils_from_auto_dict = saltext.zfs.utils.zfs.from_auto_dict
+        self._utils_to_auto = saltext.zfs.utils.zfs.to_auto
+        self._utils_to_auto_dict = saltext.zfs.utils.zfs.to_auto_dict
+
         # property_map mocks
         self.pmap_exec_zpool = {
             "retcode": 2,
@@ -689,7 +695,7 @@ class ZFSMockData:
         ), patch.object(
             saltext.zfs.utils.zfs, "property_data_zfs", MagicMock(return_value=self.pmap_zfs)
         ):
-            return saltext.zfs.utils.zfs.from_auto(name, value, source)
+            return self._utils_from_auto(name, value, source)
 
     def _from_auto_dict(self, values, source="auto"):
         """
@@ -702,7 +708,7 @@ class ZFSMockData:
         ), patch.object(
             saltext.zfs.utils.zfs, "property_data_zfs", MagicMock(return_value=self.pmap_zfs)
         ):
-            return saltext.zfs.utils.zfs.from_auto_dict(values, source)
+            return self._utils_from_auto_dict(values, source)
 
     def _to_auto(self, name, value, source="auto", convert_to_human=True):
         """
@@ -715,7 +721,7 @@ class ZFSMockData:
         ), patch.object(
             saltext.zfs.utils.zfs, "property_data_zfs", MagicMock(return_value=self.pmap_zfs)
         ):
-            return saltext.zfs.utils.zfs.to_auto(name, value, source, convert_to_human)
+            return self._utils_to_auto(name, value, source, convert_to_human)
 
     def _to_auto_dict(self, values, source="auto", convert_to_human=True):
         """
@@ -728,25 +734,25 @@ class ZFSMockData:
         ), patch.object(
             saltext.zfs.utils.zfs, "property_data_zfs", MagicMock(return_value=self.pmap_zfs)
         ):
-            return saltext.zfs.utils.zfs.to_auto_dict(values, source, convert_to_human)
+            return self._utils_to_auto_dict(values, source, convert_to_human)
 
     def get_patched_utils(self):
         return {
-            "zfs.is_supported": MagicMock(return_value=True),
-            "zfs.has_feature_flags": MagicMock(return_value=True),
-            "zfs.property_data_zpool": MagicMock(return_value=self.pmap_zpool),
-            "zfs.property_data_zfs": MagicMock(return_value=self.pmap_zfs),
+            "is_supported": MagicMock(return_value=True),
+            "has_feature_flags": MagicMock(return_value=True),
+            "property_data_zpool": MagicMock(return_value=self.pmap_zpool),
+            "property_data_zfs": MagicMock(return_value=self.pmap_zfs),
             # NOTE: we make zpool_command and zfs_command a NOOP
             #       these are extensively tested in tests.unit.utils.test_zfs
-            "zfs.zpool_command": MagicMock(return_value="/bin/false"),
-            "zfs.zfs_command": MagicMock(return_value="/bin/false"),
+            "zpool_command": MagicMock(return_value="/bin/false"),
+            "zfs_command": MagicMock(return_value="/bin/false"),
             # NOTE: from_auto_dict is a special snowflake
             #       internally it calls multiple calls from
             #       salt.utils.zfs but we cannot patch those using
             #       the common methode, __utils__ is not available
             #       so they are direct calls, we do some voodoo here.
-            "zfs.from_auto_dict": self._from_auto_dict,
-            "zfs.from_auto": self._from_auto,
-            "zfs.to_auto_dict": self._to_auto_dict,
-            "zfs.to_auto": self._to_auto,
+            "from_auto_dict": self._from_auto_dict,
+            "from_auto": self._from_auto,
+            "to_auto_dict": self._to_auto_dict,
+            "to_auto": self._to_auto,
         }

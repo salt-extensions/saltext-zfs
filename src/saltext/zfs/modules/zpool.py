@@ -559,8 +559,6 @@ def set(zpool, prop, value):
         salt '*' zpool.set myzpool readonly yes
 
     """
-    ret = OrderedDict()
-
     # set property
     res = __salt__["cmd.run_all"](
         saltext.zfs.utils.zfs.zpool_command(
