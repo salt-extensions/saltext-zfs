@@ -48,6 +48,8 @@ from datetime import datetime
 
 from salt.utils.odict import OrderedDict
 
+import saltext.zfs.utils.zfs
+
 log = logging.getLogger(__name__)
 
 # Define the state's virtual name
@@ -88,17 +90,13 @@ def _absent(name, dataset_type, force=False, recursive=False):
     ## log configuration
     dataset_type = dataset_type.lower()
     log.debug("zfs.%s_absent::%s::config::force = %s", dataset_type, name, force)
-    log.debug(
-        "zfs.%s_absent::%s::config::recursive = %s", dataset_type, name, recursive
-    )
+    log.debug("zfs.%s_absent::%s::config::recursive = %s", dataset_type, name, recursive)
 
     ## destroy dataset if needed
     if __salt__["zfs.exists"](name, **{"type": dataset_type}):
         ## NOTE: dataset found with the name and dataset_type
         if not __opts__["test"]:
-            mod_res = __salt__["zfs.destroy"](
-                name, **{"force": force, "recursive": recursive}
-            )
+            mod_res = __salt__["zfs.destroy"](name, **{"force": force, "recursive": recursive})
         else:
             mod_res = OrderedDict([("destroyed", True)])
 
@@ -140,7 +138,7 @@ def filesystem_absent(name, force=False, recursive=False):
         destroying the volume specified by ``name``. This module is dataset type sensitive.
 
     """
-    if not __utils__["zfs.is_dataset"](name):
+    if not saltext.zfs.utils.zfs.is_dataset(name):
         ret = {
             "name": name,
             "changes": {},
@@ -169,7 +167,7 @@ def volume_absent(name, force=False, recursive=False):
         destroying the filesystem specified by ``name``. This module is dataset type sensitive.
 
     """
-    if not __utils__["zfs.is_dataset"](name):
+    if not saltext.zfs.utils.zfs.is_dataset(name):
         ret = {
             "name": name,
             "changes": {},
@@ -193,7 +191,7 @@ def snapshot_absent(name, force=False, recursive=False):
         also destroy all the child datasets (zfs destroy -r)
 
     """
-    if not __utils__["zfs.is_snapshot"](name):
+    if not saltext.zfs.utils.zfs.is_snapshot(name):
         ret = {
             "name": name,
             "changes": {},
@@ -217,7 +215,7 @@ def bookmark_absent(name, force=False, recursive=False):
         also destroy all the child datasets (zfs destroy -r)
 
     """
-    if not __utils__["zfs.is_bookmark"](name):
+    if not saltext.zfs.utils.zfs.is_bookmark(name):
         ret = {
             "name": name,
             "changes": {},
@@ -248,14 +246,14 @@ def hold_absent(name, snapshot, recursive=False):
     log.debug("zfs.hold_absent::%s::config::recursive = %s", name, recursive)
 
     ## check we have a snapshot/tag name
-    if not __utils__["zfs.is_snapshot"](snapshot):
+    if not saltext.zfs.utils.zfs.is_snapshot(snapshot):
         ret["result"] = False
         ret["comment"] = f"invalid snapshot name: {snapshot}"
         return ret
 
     if (
-        __utils__["zfs.is_snapshot"](name)
-        or __utils__["zfs.is_bookmark"](name)
+        saltext.zfs.utils.zfs.is_snapshot(name)
+        or saltext.zfs.utils.zfs.is_bookmark(name)
         or name == "error"
     ):
         ret["result"] = False
@@ -267,9 +265,7 @@ def hold_absent(name, snapshot, recursive=False):
     if name in holds:
         ## NOTE: hold found for snapshot, release it
         if not __opts__["test"]:
-            mod_res = __salt__["zfs.release"](
-                name, snapshot, **{"recursive": recursive}
-            )
+            mod_res = __salt__["zfs.release"](name, snapshot, **{"recursive": recursive})
         else:
             mod_res = OrderedDict([("released", True)])
 
@@ -317,14 +313,14 @@ def hold_present(name, snapshot, recursive=False):
     log.debug("zfs.hold_present::%s::config::recursive = %s", name, recursive)
 
     ## check we have a snapshot/tag name
-    if not __utils__["zfs.is_snapshot"](snapshot):
+    if not saltext.zfs.utils.zfs.is_snapshot(snapshot):
         ret["result"] = False
         ret["comment"] = f"invalid snapshot name: {snapshot}"
         return ret
 
     if (
-        __utils__["zfs.is_snapshot"](name)
-        or __utils__["zfs.is_bookmark"](name)
+        saltext.zfs.utils.zfs.is_snapshot(name)
+        or saltext.zfs.utils.zfs.is_bookmark(name)
         or name == "error"
     ):
         ret["result"] = False
@@ -410,19 +406,17 @@ def _dataset_present(
     ## ensure properties are zfs values
     if properties is None:
         properties = {}
-    properties = __utils__["zfs.from_auto_dict"](properties)
+    properties = saltext.zfs.utils.zfs.from_auto_dict(properties)
     if volume_size:
         ## NOTE: add volsize to properties
-        volume_size = __utils__["zfs.from_size"](volume_size)
+        volume_size = saltext.zfs.utils.zfs.from_size(volume_size)
         properties.update({"volsize": volume_size})
     # The sorted isn't necessary for proper behavior, but it helps for the unit
     # tests.
     propnames = ",".join(sorted(properties.keys()))
 
     ## log configuration
-    log.debug(
-        "zfs.%s_present::%s::config::volume_size = %s", dataset_type, name, volume_size
-    )
+    log.debug("zfs.%s_present::%s::config::volume_size = %s", dataset_type, name, volume_size)
     log.debug("zfs.%s_present::%s::config::sparse = %s", dataset_type, name, sparse)
     log.debug(
         "zfs.%s_present::%s::config::create_parent = %s",
@@ -430,20 +424,16 @@ def _dataset_present(
         name,
         create_parent,
     )
-    log.debug(
-        "zfs.%s_present::%s::config::cloned_from = %s", dataset_type, name, cloned_from
-    )
-    log.debug(
-        "zfs.%s_present::%s::config::properties = %s", dataset_type, name, properties
-    )
+    log.debug("zfs.%s_present::%s::config::cloned_from = %s", dataset_type, name, cloned_from)
+    log.debug("zfs.%s_present::%s::config::properties = %s", dataset_type, name, properties)
 
     ## check we have valid filesystem name/volume name/clone snapshot
-    if not __utils__["zfs.is_dataset"](name):
+    if not saltext.zfs.utils.zfs.is_dataset(name):
         ret["result"] = False
         ret["comment"] = f"invalid dataset name: {name}"
         return ret
 
-    if cloned_from and not __utils__["zfs.is_snapshot"](cloned_from):
+    if cloned_from and not saltext.zfs.utils.zfs.is_snapshot(cloned_from):
         ret["result"] = False
         ret["comment"] = f"{cloned_from} is not a snapshot"
         return ret
@@ -656,7 +646,7 @@ def bookmark_present(name, snapshot):
     log.debug("zfs.bookmark_present::%s::config::snapshot = %s", name, snapshot)
 
     ## check we have valid snapshot/bookmark name
-    if not __utils__["zfs.is_snapshot"](snapshot):
+    if not saltext.zfs.utils.zfs.is_snapshot(snapshot):
         ret["result"] = False
         ret["comment"] = f"invalid snapshot name: {name}"
         return ret
@@ -668,7 +658,7 @@ def bookmark_present(name, snapshot):
         name = "{}#{}".format(snapshot[: snapshot.index("@")], name)
         ret["name"] = name
 
-    if not __utils__["zfs.is_bookmark"](name):
+    if not saltext.zfs.utils.zfs.is_bookmark(name):
         ret["result"] = False
         ret["comment"] = f"invalid bookmark name: {name}"
         return ret
@@ -719,10 +709,10 @@ def snapshot_present(name, recursive=False, properties=None):
 
     ## ensure properties are zfs values
     if properties:
-        properties = __utils__["zfs.from_auto_dict"](properties)
+        properties = saltext.zfs.utils.zfs.from_auto_dict(properties)
 
     ## check we have valid snapshot name
-    if not __utils__["zfs.is_snapshot"](name):
+    if not saltext.zfs.utils.zfs.is_snapshot(name):
         ret["result"] = False
         ret["comment"] = f"invalid snapshot name: {name}"
         return ret
@@ -770,7 +760,7 @@ def promoted(name):
     ret = {"name": name, "changes": {}, "result": True, "comment": ""}
 
     ## check we if we have a valid dataset name
-    if not __utils__["zfs.is_dataset"](name):
+    if not saltext.zfs.utils.zfs.is_dataset(name):
         ret["result"] = False
         ret["comment"] = f"invalid dataset name: {name}"
         return ret
@@ -824,9 +814,7 @@ def _schedule_snapshot_retrieve(dataset, prefix, snapshots):
     """
     ## NOTE: retrieve all snapshots for the dataset
     for snap in sorted(
-        __salt__["zfs.list"](
-            dataset, **{"recursive": True, "depth": 1, "type": "snapshot"}
-        ).keys()
+        __salt__["zfs.list"](dataset, **{"recursive": True, "depth": 1, "type": "snapshot"}).keys()
     ):
         ## NOTE: we only want the actualy name
         ##       myzpool/data@zbck-20171201_000248 -> zbck-20171201_000248
@@ -892,21 +880,21 @@ def _schedule_snapshot_prepare(dataset, prefix, snapshots):
             ## NOTE: compare current timestamp to timestamp from snapshot
             if hold == "minute" and timestamp_now <= timestamp:
                 continue
-            elif hold == "hour" and timestamp_now.replace(
+            elif hold == "hour" and timestamp_now.replace(**comp_hour) <= timestamp.replace(
                 **comp_hour
-            ) <= timestamp.replace(**comp_hour):
+            ):
                 continue
-            elif hold == "day" and timestamp_now.replace(
+            elif hold == "day" and timestamp_now.replace(**comp_day) <= timestamp.replace(
                 **comp_day
-            ) <= timestamp.replace(**comp_day):
+            ):
                 continue
-            elif hold == "month" and timestamp_now.replace(
+            elif hold == "month" and timestamp_now.replace(**comp_month) <= timestamp.replace(
                 **comp_month
-            ) <= timestamp.replace(**comp_month):
+            ):
                 continue
-            elif hold == "year" and timestamp_now.replace(
+            elif hold == "year" and timestamp_now.replace(**comp_year) <= timestamp.replace(
                 **comp_year
-            ) <= timestamp.replace(**comp_year):
+            ):
                 continue
 
         ## NOTE: add hold entry for snapshot
@@ -952,7 +940,7 @@ def scheduled_snapshot(name, prefix, recursive=True, schedule=None):
 
     ## strict configuration validation
     ## NOTE: we need a valid dataset
-    if not __utils__["zfs.is_dataset"](name):
+    if not saltext.zfs.utils.zfs.is_dataset(name):
         ret["result"] = False
         ret["comment"] = f"invalid dataset name: {name}"
 
@@ -1007,9 +995,7 @@ def scheduled_snapshot(name, prefix, recursive=True, schedule=None):
 
         ## NOTE: create snapshot
         if not __opts__["test"]:
-            mod_res = __salt__["zfs.snapshot"](
-                snapshot_name, **{"recursive": recursive}
-            )
+            mod_res = __salt__["zfs.snapshot"](snapshot_name, **{"recursive": recursive})
         else:
             mod_res = OrderedDict([("snapshotted", True)])
 
@@ -1020,9 +1006,7 @@ def scheduled_snapshot(name, prefix, recursive=True, schedule=None):
             ## NOTE: create holds (if we have a snapshot)
             for hold in snapshot_holds:
                 if not __opts__["test"]:
-                    mod_res = __salt__["zfs.hold"](
-                        hold, snapshot_name, **{"recursive": recursive}
-                    )
+                    mod_res = __salt__["zfs.hold"](hold, snapshot_name, **{"recursive": recursive})
                 else:
                     mod_res = OrderedDict([("held", True)])
 
@@ -1050,9 +1034,7 @@ def scheduled_snapshot(name, prefix, recursive=True, schedule=None):
 
             ## NOTE: release hold for snapshot
             if not __opts__["test"]:
-                mod_res = __salt__["zfs.release"](
-                    hold, snapshot_name, **{"recursive": recursive}
-                )
+                mod_res = __salt__["zfs.release"](hold, snapshot_name, **{"recursive": recursive})
             else:
                 mod_res = OrderedDict([("released", True)])
 

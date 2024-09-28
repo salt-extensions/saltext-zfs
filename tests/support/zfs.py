@@ -5,8 +5,10 @@
     ZFS related unit test data structures
 """
 
-import salt.utils.zfs
-from tests.support.mock import MagicMock, patch
+from unittest.mock import MagicMock
+from unittest.mock import patch
+
+import saltext.zfs.utils.zfs
 
 
 class ZFSMockData:
@@ -419,9 +421,7 @@ class ZFSMockData:
             "aclinherit": {
                 "edit": True,
                 "inherit": True,
-                "values": (
-                    "discard | noallow | restricted | passthrough | passthrough-x"
-                ),
+                "values": ("discard | noallow | restricted | passthrough | passthrough-x"),
                 "type": "str",
             },
             "compressratio": {
@@ -667,9 +667,7 @@ class ZFSMockData:
             "checksum": {
                 "edit": True,
                 "inherit": True,
-                "values": (
-                    "on | off | fletcher2 | fletcher4 | sha256 | sha512 | skein | edonr"
-                ),
+                "values": ("on | off | fletcher2 | fletcher4 | sha256 | sha512 | skein | edonr"),
                 "type": "bool",
             },
             "nbmand": {
@@ -685,52 +683,52 @@ class ZFSMockData:
         some more complex patching for zfs.from_auto
         """
         with patch.object(
-            salt.utils.zfs,
+            saltext.zfs.utils.zfs,
             "property_data_zpool",
             MagicMock(return_value=self.pmap_zpool),
         ), patch.object(
-            salt.utils.zfs, "property_data_zfs", MagicMock(return_value=self.pmap_zfs)
+            saltext.zfs.utils.zfs, "property_data_zfs", MagicMock(return_value=self.pmap_zfs)
         ):
-            return salt.utils.zfs.from_auto(name, value, source)
+            return saltext.zfs.utils.zfs.from_auto(name, value, source)
 
     def _from_auto_dict(self, values, source="auto"):
         """
         some more complex patching for zfs.from_auto_dict
         """
         with patch.object(
-            salt.utils.zfs,
+            saltext.zfs.utils.zfs,
             "property_data_zpool",
             MagicMock(return_value=self.pmap_zpool),
         ), patch.object(
-            salt.utils.zfs, "property_data_zfs", MagicMock(return_value=self.pmap_zfs)
+            saltext.zfs.utils.zfs, "property_data_zfs", MagicMock(return_value=self.pmap_zfs)
         ):
-            return salt.utils.zfs.from_auto_dict(values, source)
+            return saltext.zfs.utils.zfs.from_auto_dict(values, source)
 
     def _to_auto(self, name, value, source="auto", convert_to_human=True):
         """
         some more complex patching for zfs.to_auto
         """
         with patch.object(
-            salt.utils.zfs,
+            saltext.zfs.utils.zfs,
             "property_data_zpool",
             MagicMock(return_value=self.pmap_zpool),
         ), patch.object(
-            salt.utils.zfs, "property_data_zfs", MagicMock(return_value=self.pmap_zfs)
+            saltext.zfs.utils.zfs, "property_data_zfs", MagicMock(return_value=self.pmap_zfs)
         ):
-            return salt.utils.zfs.to_auto(name, value, source, convert_to_human)
+            return saltext.zfs.utils.zfs.to_auto(name, value, source, convert_to_human)
 
     def _to_auto_dict(self, values, source="auto", convert_to_human=True):
         """
         some more complex patching for zfs.to_auto_dict
         """
         with patch.object(
-            salt.utils.zfs,
+            saltext.zfs.utils.zfs,
             "property_data_zpool",
             MagicMock(return_value=self.pmap_zpool),
         ), patch.object(
-            salt.utils.zfs, "property_data_zfs", MagicMock(return_value=self.pmap_zfs)
+            saltext.zfs.utils.zfs, "property_data_zfs", MagicMock(return_value=self.pmap_zfs)
         ):
-            return salt.utils.zfs.to_auto_dict(values, source, convert_to_human)
+            return saltext.zfs.utils.zfs.to_auto_dict(values, source, convert_to_human)
 
     def get_patched_utils(self):
         return {

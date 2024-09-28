@@ -34,10 +34,7 @@ def _check_retcode(cmd):
     """
     Simple internal wrapper for cmdmod.retcode
     """
-    return (
-        salt.modules.cmdmod.retcode(cmd, output_loglevel="quiet", ignore_retcode=True)
-        == 0
-    )
+    return salt.modules.cmdmod.retcode(cmd, output_loglevel="quiet", ignore_retcode=True) == 0
 
 
 def _exec(**kwargs):
@@ -56,9 +53,7 @@ def _merge_last(values, merge_after, merge_with=" "):
     Merge values all values after X into the last value
     """
     if len(values) > merge_after:
-        values = values[0 : (merge_after - 1)] + [
-            merge_with.join(values[(merge_after - 1) :])
-        ]
+        values = values[0 : (merge_after - 1)] + [merge_with.join(values[(merge_after - 1) :])]
 
     return values
 

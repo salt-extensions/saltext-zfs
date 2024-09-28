@@ -74,6 +74,8 @@ import os
 
 from salt.utils.odict import OrderedDict
 
+import saltext.zfs.utils.zfs
+
 log = logging.getLogger(__name__)
 
 # Define the state's virtual name
@@ -162,9 +164,7 @@ def _layout_to_vdev(layout, device_dir=None):
     return vdevs
 
 
-def present(
-    name, properties=None, filesystem_properties=None, layout=None, config=None
-):
+def present(name, properties=None, filesystem_properties=None, layout=None, config=None):
     """
     ensure storage pool is present on the system
 
@@ -264,11 +264,11 @@ def present(
 
     # ensure properties are zfs values
     if properties:
-        properties = __utils__["zfs.from_auto_dict"](properties)
+        properties = saltext.zfs.utils.zfs.from_auto_dict(properties)
     elif properties is None:
         properties = {}
     if filesystem_properties:
-        filesystem_properties = __utils__["zfs.from_auto_dict"](filesystem_properties)
+        filesystem_properties = saltext.zfs.utils.zfs.from_auto_dict(filesystem_properties)
     elif filesystem_properties is None:
         filesystem_properties = {}
 
@@ -281,9 +281,7 @@ def present(
     log.debug("zpool.present::%s::config - %s", name, config)
     log.debug("zpool.present::%s::vdevs - %s", name, vdevs)
     log.debug("zpool.present::%s::properties -  %s", name, properties)
-    log.debug(
-        "zpool.present::%s::filesystem_properties -  %s", name, filesystem_properties
-    )
+    log.debug("zpool.present::%s::filesystem_properties -  %s", name, filesystem_properties)
 
     # ensure the pool is present
     ret["result"] = False
@@ -296,9 +294,7 @@ def present(
         else:
             ret["result"] = None
             ret["changes"][name] = "imported" if config["import"] else "created"
-            ret["comment"] = "storage pool {} would have been {}".format(
-                name, ret["changes"][name]
-            )
+            ret["comment"] = "storage pool {} would have been {}".format(name, ret["changes"][name])
 
     # update pool
     elif __salt__["zpool.exists"](name):
@@ -313,9 +309,7 @@ def present(
             for prop in properties:
                 # skip unexisting properties
                 if prop not in properties_current:
-                    log.warning(
-                        "zpool.present::%s::update - unknown property: %s", name, prop
-                    )
+                    log.warning("zpool.present::%s::update - unknown property: %s", name, prop)
                     continue
 
                 # compare current and wanted value
@@ -344,9 +338,7 @@ def present(
                 ret["comment"] = "{} {}".format(ret["comment"], prop)
 
         if ret["result"]:
-            ret["comment"] = (
-                "properties updated" if ret["changes"] else "no update needed"
-            )
+            ret["comment"] = "properties updated" if ret["changes"] else "no update needed"
 
     # import or create the pool (at least try to anyway)
     else:

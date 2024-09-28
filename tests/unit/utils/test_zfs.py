@@ -9,9 +9,12 @@ Tests for the zfs utils library
 .. versionadded:: 2018.3.1
 """
 
-import salt.utils.zfs as zfs
+from unittest.mock import MagicMock
+from unittest.mock import patch
+
 from salt.utils.odict import OrderedDict
-from tests.support.mock import MagicMock, patch
+
+import saltext.zfs.utils.zfs as zfs
 from tests.support.unit import TestCase
 from tests.support.zfs import ZFSMockData
 
@@ -38,9 +41,7 @@ class ZfsUtilsTestCase(TestCase):
         """
         for value in [False, True]:
             with patch("salt.utils.path.which", MagicMock(return_value=value)):
-                with patch(
-                    "salt.utils.platform.is_linux", MagicMock(return_value=value)
-                ):
+                with patch("salt.utils.platform.is_linux", MagicMock(return_value=value)):
                     self.assertEqual(value, zfs.is_supported())
 
     def test_property_data_zpool(self):
@@ -49,9 +50,7 @@ class ZfsUtilsTestCase(TestCase):
         """
         with patch.object(zfs, "_zfs_cmd", MagicMock(return_value="/sbin/zfs")):
             with patch.object(zfs, "_zpool_cmd", MagicMock(return_value="/sbin/zpool")):
-                with patch.object(
-                    zfs, "_exec", MagicMock(return_value=self.pmap_exec_zpool)
-                ):
+                with patch.object(zfs, "_exec", MagicMock(return_value=self.pmap_exec_zpool)):
                     self.assertEqual(zfs.property_data_zpool(), self.pmap_zpool)
 
     def test_property_data_zfs(self):
@@ -60,9 +59,7 @@ class ZfsUtilsTestCase(TestCase):
         """
         with patch.object(zfs, "_zfs_cmd", MagicMock(return_value="/sbin/zfs")):
             with patch.object(zfs, "_zpool_cmd", MagicMock(return_value="/sbin/zpool")):
-                with patch.object(
-                    zfs, "_exec", MagicMock(return_value=self.pmap_exec_zfs)
-                ):
+                with patch.object(zfs, "_exec", MagicMock(return_value=self.pmap_exec_zfs)):
                     self.assertEqual(zfs.property_data_zfs(), self.pmap_zfs)
 
     # NOTE: testing from_bool results
@@ -120,9 +117,7 @@ class ZfsUtilsTestCase(TestCase):
         Test from_bool_alt with 'passthrough'
         """
         self.assertEqual(zfs.from_bool_alt("passthrough"), "passthrough")
-        self.assertEqual(
-            zfs.from_bool_alt(zfs.from_bool_alt("passthrough")), "passthrough"
-        )
+        self.assertEqual(zfs.from_bool_alt(zfs.from_bool_alt("passthrough")), "passthrough")
 
     # NOTE: testing to_bool results
     def test_to_bool_true(self):
@@ -208,9 +203,7 @@ class ZfsUtilsTestCase(TestCase):
         Test from_numeric with 'passthrough'
         """
         self.assertEqual(zfs.from_numeric("passthrough"), "passthrough")
-        self.assertEqual(
-            zfs.from_numeric(zfs.from_numeric("passthrough")), "passthrough"
-        )
+        self.assertEqual(zfs.from_numeric(zfs.from_numeric("passthrough")), "passthrough")
 
     # NOTE: testing to_numeric results
     def test_to_numeric_str(self):
@@ -319,17 +312,13 @@ class ZfsUtilsTestCase(TestCase):
         Test from_str with "\"my pool/my dataset\"
         """
         self.assertEqual(zfs.from_str('"my pool/my dataset"'), "my pool/my dataset")
-        self.assertEqual(
-            zfs.from_str(zfs.from_str('"my pool/my dataset"')), "my pool/my dataset"
-        )
+        self.assertEqual(zfs.from_str(zfs.from_str('"my pool/my dataset"')), "my pool/my dataset")
 
     def test_from_str_squote_space(self):
         """
         Test from_str with "my pool/jorge's dataset"
         """
-        self.assertEqual(
-            zfs.from_str("my pool/jorge's dataset"), "my pool/jorge's dataset"
-        )
+        self.assertEqual(zfs.from_str("my pool/jorge's dataset"), "my pool/jorge's dataset")
         self.assertEqual(
             zfs.from_str(zfs.from_str("my pool/jorge's dataset")),
             "my pool/jorge's dataset",
@@ -339,9 +328,7 @@ class ZfsUtilsTestCase(TestCase):
         """
         Test from_str with "my pool/the \"good\" stuff"
         """
-        self.assertEqual(
-            zfs.from_str('my pool/the "good" stuff'), 'my pool/the "good" stuff'
-        )
+        self.assertEqual(zfs.from_str('my pool/the "good" stuff'), 'my pool/the "good" stuff')
         self.assertEqual(
             zfs.from_str(zfs.from_str('my pool/the "good" stuff')),
             'my pool/the "good" stuff',
@@ -368,17 +355,13 @@ class ZfsUtilsTestCase(TestCase):
         """
         # NOTE: for fun we use both the '"str"' and "\"str\"" way of getting the literal string: "str"
         self.assertEqual(zfs.to_str("my pool/my dataset"), '"my pool/my dataset"')
-        self.assertEqual(
-            zfs.to_str(zfs.to_str("my pool/my dataset")), '"my pool/my dataset"'
-        )
+        self.assertEqual(zfs.to_str(zfs.to_str("my pool/my dataset")), '"my pool/my dataset"')
 
     def test_to_str_squote_space(self):
         """
         Test to_str with "my pool/jorge's dataset"
         """
-        self.assertEqual(
-            zfs.to_str("my pool/jorge's dataset"), '"my pool/jorge\'s dataset"'
-        )
+        self.assertEqual(zfs.to_str("my pool/jorge's dataset"), '"my pool/jorge\'s dataset"')
         self.assertEqual(
             zfs.to_str(zfs.to_str("my pool/jorge's dataset")),
             '"my pool/jorge\'s dataset"',
@@ -462,9 +445,7 @@ class ZfsUtilsTestCase(TestCase):
         """
         with patch.object(zfs, "_zfs_cmd", MagicMock(return_value="/sbin/zfs")):
             with patch.object(zfs, "_zpool_cmd", MagicMock(return_value="/sbin/zpool")):
-                with patch.object(
-                    zfs, "property_data_zfs", MagicMock(return_value=self.pmap_zfs)
-                ):
+                with patch.object(zfs, "property_data_zfs", MagicMock(return_value=self.pmap_zfs)):
                     with patch.object(
                         zfs,
                         "property_data_zpool",
@@ -478,9 +459,7 @@ class ZfsUtilsTestCase(TestCase):
         """
         with patch.object(zfs, "_zfs_cmd", MagicMock(return_value="/sbin/zfs")):
             with patch.object(zfs, "_zpool_cmd", MagicMock(return_value="/sbin/zpool")):
-                with patch.object(
-                    zfs, "property_data_zfs", MagicMock(return_value=self.pmap_zfs)
-                ):
+                with patch.object(zfs, "property_data_zfs", MagicMock(return_value=self.pmap_zfs)):
                     with patch.object(
                         zfs,
                         "property_data_zpool",
@@ -497,9 +476,7 @@ class ZfsUtilsTestCase(TestCase):
         """
         with patch.object(zfs, "_zfs_cmd", MagicMock(return_value="/sbin/zfs")):
             with patch.object(zfs, "_zpool_cmd", MagicMock(return_value="/sbin/zpool")):
-                with patch.object(
-                    zfs, "property_data_zfs", MagicMock(return_value=self.pmap_zfs)
-                ):
+                with patch.object(zfs, "property_data_zfs", MagicMock(return_value=self.pmap_zfs)):
                     with patch.object(
                         zfs,
                         "property_data_zpool",
@@ -518,9 +495,7 @@ class ZfsUtilsTestCase(TestCase):
         """
         with patch.object(zfs, "_zfs_cmd", MagicMock(return_value="/sbin/zfs")):
             with patch.object(zfs, "_zpool_cmd", MagicMock(return_value="/sbin/zpool")):
-                with patch.object(
-                    zfs, "property_data_zfs", MagicMock(return_value=self.pmap_zfs)
-                ):
+                with patch.object(zfs, "property_data_zfs", MagicMock(return_value=self.pmap_zfs)):
                     with patch.object(
                         zfs,
                         "property_data_zpool",
@@ -540,9 +515,7 @@ class ZfsUtilsTestCase(TestCase):
         """
         with patch.object(zfs, "_zfs_cmd", MagicMock(return_value="/sbin/zfs")):
             with patch.object(zfs, "_zpool_cmd", MagicMock(return_value="/sbin/zpool")):
-                with patch.object(
-                    zfs, "property_data_zfs", MagicMock(return_value=self.pmap_zfs)
-                ):
+                with patch.object(zfs, "property_data_zfs", MagicMock(return_value=self.pmap_zfs)):
                     with patch.object(
                         zfs,
                         "property_data_zpool",
@@ -565,9 +538,7 @@ class ZfsUtilsTestCase(TestCase):
         """
         with patch.object(zfs, "_zfs_cmd", MagicMock(return_value="/sbin/zfs")):
             with patch.object(zfs, "_zpool_cmd", MagicMock(return_value="/sbin/zpool")):
-                with patch.object(
-                    zfs, "property_data_zfs", MagicMock(return_value=self.pmap_zfs)
-                ):
+                with patch.object(zfs, "property_data_zfs", MagicMock(return_value=self.pmap_zfs)):
                     with patch.object(
                         zfs,
                         "property_data_zpool",
@@ -580,9 +551,7 @@ class ZfsUtilsTestCase(TestCase):
                             "-t": "snap",  # only list snapshots
                         }
                         self.assertEqual(
-                            zfs.zfs_command(
-                                "list", flags=my_flags, opts=my_opts, target="mypool"
-                            ),
+                            zfs.zfs_command("list", flags=my_flags, opts=my_opts, target="mypool"),
                             "/sbin/zfs list -r -t snap mypool",
                         )
 
@@ -592,9 +561,7 @@ class ZfsUtilsTestCase(TestCase):
         """
         with patch.object(zfs, "_zfs_cmd", MagicMock(return_value="/sbin/zfs")):
             with patch.object(zfs, "_zpool_cmd", MagicMock(return_value="/sbin/zpool")):
-                with patch.object(
-                    zfs, "property_data_zfs", MagicMock(return_value=self.pmap_zfs)
-                ):
+                with patch.object(zfs, "property_data_zfs", MagicMock(return_value=self.pmap_zfs)):
                     with patch.object(
                         zfs,
                         "property_data_zpool",
@@ -607,9 +574,7 @@ class ZfsUtilsTestCase(TestCase):
                             "-t": "snap",  # only list snapshots
                         }
                         self.assertEqual(
-                            zfs.zfs_command(
-                                "list", flags=my_flags, opts=my_opts, target="my pool"
-                            ),
+                            zfs.zfs_command("list", flags=my_flags, opts=my_opts, target="my pool"),
                             '/sbin/zfs list -r -t snap "my pool"',
                         )
 
@@ -619,18 +584,14 @@ class ZfsUtilsTestCase(TestCase):
         """
         with patch.object(zfs, "_zfs_cmd", MagicMock(return_value="/sbin/zfs")):
             with patch.object(zfs, "_zpool_cmd", MagicMock(return_value="/sbin/zpool")):
-                with patch.object(
-                    zfs, "property_data_zfs", MagicMock(return_value=self.pmap_zfs)
-                ):
+                with patch.object(zfs, "property_data_zfs", MagicMock(return_value=self.pmap_zfs)):
                     with patch.object(
                         zfs,
                         "property_data_zpool",
                         MagicMock(return_value=self.pmap_zpool),
                     ):
                         self.assertEqual(
-                            zfs.zfs_command(
-                                "get", property_name="quota", target="mypool"
-                            ),
+                            zfs.zfs_command("get", property_name="quota", target="mypool"),
                             "/sbin/zfs get quota mypool",
                         )
 
@@ -640,9 +601,7 @@ class ZfsUtilsTestCase(TestCase):
         """
         with patch.object(zfs, "_zfs_cmd", MagicMock(return_value="/sbin/zfs")):
             with patch.object(zfs, "_zpool_cmd", MagicMock(return_value="/sbin/zpool")):
-                with patch.object(
-                    zfs, "property_data_zfs", MagicMock(return_value=self.pmap_zfs)
-                ):
+                with patch.object(zfs, "property_data_zfs", MagicMock(return_value=self.pmap_zfs)):
                     with patch.object(
                         zfs,
                         "property_data_zpool",
@@ -668,9 +627,7 @@ class ZfsUtilsTestCase(TestCase):
         """
         with patch.object(zfs, "_zfs_cmd", MagicMock(return_value="/sbin/zfs")):
             with patch.object(zfs, "_zpool_cmd", MagicMock(return_value="/sbin/zpool")):
-                with patch.object(
-                    zfs, "property_data_zfs", MagicMock(return_value=self.pmap_zfs)
-                ):
+                with patch.object(zfs, "property_data_zfs", MagicMock(return_value=self.pmap_zfs)):
                     with patch.object(
                         zfs,
                         "property_data_zpool",
@@ -694,9 +651,7 @@ class ZfsUtilsTestCase(TestCase):
         """
         with patch.object(zfs, "_zfs_cmd", MagicMock(return_value="/sbin/zfs")):
             with patch.object(zfs, "_zpool_cmd", MagicMock(return_value="/sbin/zpool")):
-                with patch.object(
-                    zfs, "property_data_zfs", MagicMock(return_value=self.pmap_zfs)
-                ):
+                with patch.object(zfs, "property_data_zfs", MagicMock(return_value=self.pmap_zfs)):
                     with patch.object(
                         zfs,
                         "property_data_zpool",
@@ -726,9 +681,7 @@ class ZfsUtilsTestCase(TestCase):
         """
         with patch.object(zfs, "_zfs_cmd", MagicMock(return_value="/sbin/zfs")):
             with patch.object(zfs, "_zpool_cmd", MagicMock(return_value="/sbin/zpool")):
-                with patch.object(
-                    zfs, "property_data_zfs", MagicMock(return_value=self.pmap_zfs)
-                ):
+                with patch.object(zfs, "property_data_zfs", MagicMock(return_value=self.pmap_zfs)):
                     with patch.object(
                         zfs,
                         "property_data_zpool",
@@ -755,9 +708,7 @@ class ZfsUtilsTestCase(TestCase):
         """
         with patch.object(zfs, "_zfs_cmd", MagicMock(return_value="/sbin/zfs")):
             with patch.object(zfs, "_zpool_cmd", MagicMock(return_value="/sbin/zpool")):
-                with patch.object(
-                    zfs, "property_data_zfs", MagicMock(return_value=self.pmap_zfs)
-                ):
+                with patch.object(zfs, "property_data_zfs", MagicMock(return_value=self.pmap_zfs)):
                     with patch.object(
                         zfs,
                         "property_data_zpool",
@@ -771,9 +722,7 @@ class ZfsUtilsTestCase(TestCase):
         """
         with patch.object(zfs, "_zfs_cmd", MagicMock(return_value="/sbin/zfs")):
             with patch.object(zfs, "_zpool_cmd", MagicMock(return_value="/sbin/zpool")):
-                with patch.object(
-                    zfs, "property_data_zfs", MagicMock(return_value=self.pmap_zfs)
-                ):
+                with patch.object(zfs, "property_data_zfs", MagicMock(return_value=self.pmap_zfs)):
                     with patch.object(
                         zfs,
                         "property_data_zpool",
@@ -793,9 +742,7 @@ class ZfsUtilsTestCase(TestCase):
         """
         with patch.object(zfs, "_zfs_cmd", MagicMock(return_value="/sbin/zfs")):
             with patch.object(zfs, "_zpool_cmd", MagicMock(return_value="/sbin/zpool")):
-                with patch.object(
-                    zfs, "property_data_zfs", MagicMock(return_value=self.pmap_zfs)
-                ):
+                with patch.object(zfs, "property_data_zfs", MagicMock(return_value=self.pmap_zfs)):
                     with patch.object(
                         zfs,
                         "property_data_zpool",
@@ -815,9 +762,7 @@ class ZfsUtilsTestCase(TestCase):
         """
         with patch.object(zfs, "_zfs_cmd", MagicMock(return_value="/sbin/zfs")):
             with patch.object(zfs, "_zpool_cmd", MagicMock(return_value="/sbin/zpool")):
-                with patch.object(
-                    zfs, "property_data_zfs", MagicMock(return_value=self.pmap_zfs)
-                ):
+                with patch.object(zfs, "property_data_zfs", MagicMock(return_value=self.pmap_zfs)):
                     with patch.object(
                         zfs,
                         "property_data_zpool",
@@ -837,9 +782,7 @@ class ZfsUtilsTestCase(TestCase):
         """
         with patch.object(zfs, "_zfs_cmd", MagicMock(return_value="/sbin/zfs")):
             with patch.object(zfs, "_zpool_cmd", MagicMock(return_value="/sbin/zpool")):
-                with patch.object(
-                    zfs, "property_data_zfs", MagicMock(return_value=self.pmap_zfs)
-                ):
+                with patch.object(zfs, "property_data_zfs", MagicMock(return_value=self.pmap_zfs)):
                     with patch.object(
                         zfs,
                         "property_data_zpool",
@@ -859,9 +802,7 @@ class ZfsUtilsTestCase(TestCase):
         """
         with patch.object(zfs, "_zfs_cmd", MagicMock(return_value="/sbin/zfs")):
             with patch.object(zfs, "_zpool_cmd", MagicMock(return_value="/sbin/zpool")):
-                with patch.object(
-                    zfs, "property_data_zfs", MagicMock(return_value=self.pmap_zfs)
-                ):
+                with patch.object(zfs, "property_data_zfs", MagicMock(return_value=self.pmap_zfs)):
                     with patch.object(
                         zfs,
                         "property_data_zpool",
@@ -890,18 +831,14 @@ class ZfsUtilsTestCase(TestCase):
         """
         with patch.object(zfs, "_zfs_cmd", MagicMock(return_value="/sbin/zfs")):
             with patch.object(zfs, "_zpool_cmd", MagicMock(return_value="/sbin/zpool")):
-                with patch.object(
-                    zfs, "property_data_zfs", MagicMock(return_value=self.pmap_zfs)
-                ):
+                with patch.object(zfs, "property_data_zfs", MagicMock(return_value=self.pmap_zfs)):
                     with patch.object(
                         zfs,
                         "property_data_zpool",
                         MagicMock(return_value=self.pmap_zpool),
                     ):
                         self.assertEqual(
-                            zfs.zpool_command(
-                                "get", property_name="comment", target="mypool"
-                            ),
+                            zfs.zpool_command("get", property_name="comment", target="mypool"),
                             "/sbin/zpool get comment mypool",
                         )
 
@@ -911,9 +848,7 @@ class ZfsUtilsTestCase(TestCase):
         """
         with patch.object(zfs, "_zfs_cmd", MagicMock(return_value="/sbin/zfs")):
             with patch.object(zfs, "_zpool_cmd", MagicMock(return_value="/sbin/zpool")):
-                with patch.object(
-                    zfs, "property_data_zfs", MagicMock(return_value=self.pmap_zfs)
-                ):
+                with patch.object(zfs, "property_data_zfs", MagicMock(return_value=self.pmap_zfs)):
                     with patch.object(
                         zfs,
                         "property_data_zpool",
@@ -923,9 +858,7 @@ class ZfsUtilsTestCase(TestCase):
                             "-v",  # verbose
                         ]
                         self.assertEqual(
-                            zfs.zpool_command(
-                                "iostat", flags=my_flags, target=["mypool", 60, 1]
-                            ),
+                            zfs.zpool_command("iostat", flags=my_flags, target=["mypool", 60, 1]),
                             "/sbin/zpool iostat -v mypool 60 1",
                         )
 
@@ -935,9 +868,7 @@ class ZfsUtilsTestCase(TestCase):
         """
         with patch.object(zfs, "_zfs_cmd", MagicMock(return_value="/sbin/zfs")):
             with patch.object(zfs, "_zpool_cmd", MagicMock(return_value="/sbin/zpool")):
-                with patch.object(
-                    zfs, "property_data_zfs", MagicMock(return_value=self.pmap_zfs)
-                ):
+                with patch.object(zfs, "property_data_zfs", MagicMock(return_value=self.pmap_zfs)):
                     with patch.object(
                         zfs,
                         "property_data_zpool",
@@ -958,9 +889,7 @@ class ZfsUtilsTestCase(TestCase):
         """
         with patch.object(zfs, "_zfs_cmd", MagicMock(return_value="/sbin/zfs")):
             with patch.object(zfs, "_zpool_cmd", MagicMock(return_value="/sbin/zpool")):
-                with patch.object(
-                    zfs, "property_data_zfs", MagicMock(return_value=self.pmap_zfs)
-                ):
+                with patch.object(zfs, "property_data_zfs", MagicMock(return_value=self.pmap_zfs)):
                     with patch.object(
                         zfs,
                         "property_data_zpool",
@@ -981,9 +910,7 @@ class ZfsUtilsTestCase(TestCase):
         """
         with patch.object(zfs, "_zfs_cmd", MagicMock(return_value="/sbin/zfs")):
             with patch.object(zfs, "_zpool_cmd", MagicMock(return_value="/sbin/zpool")):
-                with patch.object(
-                    zfs, "property_data_zfs", MagicMock(return_value=self.pmap_zfs)
-                ):
+                with patch.object(zfs, "property_data_zfs", MagicMock(return_value=self.pmap_zfs)):
                     with patch.object(
                         zfs,
                         "property_data_zpool",
@@ -1004,9 +931,7 @@ class ZfsUtilsTestCase(TestCase):
         """
         with patch.object(zfs, "_zfs_cmd", MagicMock(return_value="/sbin/zfs")):
             with patch.object(zfs, "_zpool_cmd", MagicMock(return_value="/sbin/zpool")):
-                with patch.object(
-                    zfs, "property_data_zfs", MagicMock(return_value=self.pmap_zfs)
-                ):
+                with patch.object(zfs, "property_data_zfs", MagicMock(return_value=self.pmap_zfs)):
                     with patch.object(
                         zfs,
                         "property_data_zpool",
@@ -1027,9 +952,7 @@ class ZfsUtilsTestCase(TestCase):
         """
         with patch.object(zfs, "_zfs_cmd", MagicMock(return_value="/sbin/zfs")):
             with patch.object(zfs, "_zpool_cmd", MagicMock(return_value="/sbin/zpool")):
-                with patch.object(
-                    zfs, "property_data_zfs", MagicMock(return_value=self.pmap_zfs)
-                ):
+                with patch.object(zfs, "property_data_zfs", MagicMock(return_value=self.pmap_zfs)):
                     with patch.object(
                         zfs,
                         "property_data_zpool",
@@ -1043,9 +966,7 @@ class ZfsUtilsTestCase(TestCase):
                         res["stdout"] = ""
                         self.assertEqual(
                             zfs.parse_command_result(res, "tested"),
-                            OrderedDict(
-                                [("tested", False), ("error", "ice is not hot")]
-                            ),
+                            OrderedDict([("tested", False), ("error", "ice is not hot")]),
                         )
 
     def test_parse_command_result_fail_message_nolabel(self):
@@ -1054,9 +975,7 @@ class ZfsUtilsTestCase(TestCase):
         """
         with patch.object(zfs, "_zfs_cmd", MagicMock(return_value="/sbin/zfs")):
             with patch.object(zfs, "_zpool_cmd", MagicMock(return_value="/sbin/zpool")):
-                with patch.object(
-                    zfs, "property_data_zfs", MagicMock(return_value=self.pmap_zfs)
-                ):
+                with patch.object(zfs, "property_data_zfs", MagicMock(return_value=self.pmap_zfs)):
                     with patch.object(
                         zfs,
                         "property_data_zpool",

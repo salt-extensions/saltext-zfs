@@ -8,14 +8,16 @@ Tests for salt.states.zfs
 :platform:      illumos,freebsd,linux
 """
 
-import pytest
+from unittest.mock import MagicMock
+from unittest.mock import patch
 
+import pytest
 import salt.config
 import salt.loader
-import salt.states.zfs as zfs
-import salt.utils.zfs
 from salt.utils.odict import OrderedDict
-from tests.support.mock import MagicMock, patch
+
+import saltext.zfs.states.zfs as zfs
+import saltext.zfs.utils.zfs
 from tests.support.zfs import ZFSMockData
 
 pytestmark = [
@@ -105,8 +107,7 @@ def test_filesystem_absent_fail(utils_patch):
                     "error",
                     "\n".join(
                         [
-                            "cannot destroy 'myzpool/filesystem': filesystem has"
-                            " children",
+                            "cannot destroy 'myzpool/filesystem': filesystem has" " children",
                             "use 'recursive=True' to destroy the following datasets:",
                             "myzpool/filesystem@snap",
                         ]
@@ -335,9 +336,7 @@ def test_hold_absent_removed(utils_patch):
         ),
     }
 
-    mock_holds = MagicMock(
-        return_value=OrderedDict([("myhold", "Thu Feb 15 16:24 2018")])
-    )
+    mock_holds = MagicMock(return_value=OrderedDict([("myhold", "Thu Feb 15 16:24 2018")]))
     mock_release = MagicMock(return_value=OrderedDict([("released", True)]))
     with patch.dict(zfs.__salt__, {"zfs.holds": mock_holds}), patch.dict(
         zfs.__salt__, {"zfs.release": mock_release}
@@ -383,9 +382,7 @@ def test_hold_present(utils_patch):
         "changes": {},
     }
 
-    mock_holds = MagicMock(
-        return_value=OrderedDict([("myhold", "Thu Feb 15 16:24 2018")])
-    )
+    mock_holds = MagicMock(return_value=OrderedDict([("myhold", "Thu Feb 15 16:24 2018")]))
     with patch.dict(zfs.__salt__, {"zfs.holds": mock_holds}), patch.dict(
         zfs.__utils__, utils_patch
     ):
@@ -420,9 +417,7 @@ def test_hold_present_fail(utils_patch):
     ret = {
         "name": "myhold",
         "result": False,
-        "comment": (
-            "cannot hold snapshot 'zsalt/filesystem@snap': dataset does not exist"
-        ),
+        "comment": ("cannot hold snapshot 'zsalt/filesystem@snap': dataset does not exist"),
         "changes": {},
     }
 
@@ -433,8 +428,7 @@ def test_hold_present_fail(utils_patch):
                 ("held", False),
                 (
                     "error",
-                    "cannot hold snapshot 'zsalt/filesystem@snap': dataset does not"
-                    " exist",
+                    "cannot hold snapshot 'zsalt/filesystem@snap': dataset does not" " exist",
                 ),
             ]
         )
@@ -554,9 +548,7 @@ def test_filesystem_present_update(utils_patch):
     )
     with patch.dict(zfs.__salt__, {"zfs.exists": mock_exists}), patch.dict(
         zfs.__salt__, {"zfs.get": mock_get}
-    ), patch.dict(zfs.__salt__, {"zfs.set": mock_set}), patch.dict(
-        zfs.__utils__, utils_patch
-    ):
+    ), patch.dict(zfs.__salt__, {"zfs.set": mock_set}), patch.dict(zfs.__utils__, utils_patch):
         assert ret == zfs.filesystem_present(
             name="myzpool/filesystem",
             properties={"compression": "lz4"},
@@ -613,9 +605,7 @@ def test_volume_present(utils_patch):
     }
 
     mock_exists = MagicMock(return_value=True)
-    mock_get = MagicMock(
-        return_value=OrderedDict([("myzpool/volume", OrderedDict([]))])
-    )
+    mock_get = MagicMock(return_value=OrderedDict([("myzpool/volume", OrderedDict([]))]))
     with patch.dict(zfs.__salt__, {"zfs.exists": mock_exists}), patch.dict(
         zfs.__salt__, {"zfs.get": mock_get}
     ), patch.dict(zfs.__utils__, utils_patch):
@@ -674,9 +664,7 @@ def test_volume_present_update(utils_patch):
     )
     with patch.dict(zfs.__salt__, {"zfs.exists": mock_exists}), patch.dict(
         zfs.__salt__, {"zfs.get": mock_get}
-    ), patch.dict(zfs.__salt__, {"zfs.set": mock_set}), patch.dict(
-        zfs.__utils__, utils_patch
-    ):
+    ), patch.dict(zfs.__salt__, {"zfs.set": mock_set}), patch.dict(zfs.__utils__, utils_patch):
         assert ret == zfs.volume_present(
             name="myzpool/volume",
             volume_size="1G",
@@ -743,9 +731,7 @@ def test_bookmark_present_new(utils_patch):
     ret = {
         "name": "myzpool/filesystem#mybookmark",
         "result": True,
-        "comment": (
-            "myzpool/filesystem@snap bookmarked as myzpool/filesystem#mybookmark"
-        ),
+        "comment": ("myzpool/filesystem@snap bookmarked as myzpool/filesystem#mybookmark"),
         "changes": {"myzpool/filesystem#mybookmark": "myzpool/filesystem@snap"},
     }
 
@@ -764,9 +750,7 @@ def test_bookmark_present_fail(utils_patch):
     ret = {
         "name": "myzpool/filesystem#mybookmark",
         "result": False,
-        "comment": (
-            "cannot bookmark snapshot 'zsalt/filesystem@snap': dataset does not exist"
-        ),
+        "comment": ("cannot bookmark snapshot 'zsalt/filesystem@snap': dataset does not exist"),
         "changes": {},
     }
 
@@ -777,8 +761,7 @@ def test_bookmark_present_fail(utils_patch):
                 ("bookmarked", False),
                 (
                     "error",
-                    "cannot bookmark snapshot 'zsalt/filesystem@snap': dataset does not"
-                    " exist",
+                    "cannot bookmark snapshot 'zsalt/filesystem@snap': dataset does not" " exist",
                 ),
             ]
         )
@@ -908,9 +891,7 @@ def test_propmoted_clone(utils_patch):
                         [
                             (
                                 "origin",
-                                OrderedDict(
-                                    [("value", "myzool/filesystem_source@clean")]
-                                ),
+                                OrderedDict([("value", "myzool/filesystem_source@clean")]),
                             ),
                         ]
                     ),
@@ -961,6 +942,4 @@ def test_scheduled_snapshot_fail(utils_patch):
     with patch.dict(zfs.__salt__, {"zfs.exists": mock_exists}), patch.dict(
         zfs.__utils__, utils_patch
     ):
-        assert ret == zfs.scheduled_snapshot(
-            "myzpool/filesystem", "shadow", schedule={"hour": 6}
-        )
+        assert ret == zfs.scheduled_snapshot("myzpool/filesystem", "shadow", schedule={"hour": 6})

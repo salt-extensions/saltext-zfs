@@ -2,12 +2,14 @@
 Tests for salt.modules.zfs on Solaris
 """
 
-import pytest
+from unittest.mock import MagicMock
+from unittest.mock import patch
 
+import pytest
 import salt.loader
-import salt.modules.zfs as zfs
-import salt.utils.zfs
-from tests.support.mock import MagicMock, patch
+
+import saltext.zfs.modules.zfs as zfs
+import saltext.zfs.utils.zfs
 from tests.support.zfs import ZFSMockData
 
 

@@ -8,14 +8,16 @@ Tests for salt.states.zpool
 :platform:      illumos,freebsd,linux
 """
 
-import pytest
+from unittest.mock import MagicMock
+from unittest.mock import patch
 
+import pytest
 import salt.config
 import salt.loader
-import salt.states.zpool as zpool
-import salt.utils.zfs
 from salt.utils.odict import OrderedDict
-from tests.support.mock import MagicMock, patch
+
+import saltext.zfs.states.zpool as zpool
+import saltext.zfs.utils.zfs
 from tests.support.zfs import ZFSMockData
 
 pytestmark = [
@@ -168,8 +170,7 @@ def test_present_import_fail(utils_patch):
         "name": "myzpool",
         "result": False,
         "comment": (
-            "storage pool myzpool was not imported, no (valid) layout specified for"
-            " creation"
+            "storage pool myzpool was not imported, no (valid) layout specified for" " creation"
         ),
         "changes": {},
     }
@@ -251,8 +252,7 @@ def test_present_create_fail(utils_patch):
         "name": "myzpool",
         "result": False,
         "comment": (
-            "storage pool myzpool was not imported, no (valid) layout specified for"
-            " creation"
+            "storage pool myzpool was not imported, no (valid) layout specified for" " creation"
         ),
         "changes": {},
     }

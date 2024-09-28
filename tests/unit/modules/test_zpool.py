@@ -8,15 +8,17 @@ Tests for salt.modules.zpool
 :platform:      illumos,freebsd,linux
 """
 
-import pytest
+from unittest.mock import MagicMock
+from unittest.mock import patch
 
+import pytest
 import salt.loader
-import salt.modules.zpool as zpool
 import salt.utils.decorators
 import salt.utils.decorators.path
-import salt.utils.zfs
 from salt.utils.odict import OrderedDict
-from tests.support.mock import MagicMock, patch
+
+import saltext.zfs.modules.zpool as zpool
+import saltext.zfs.utils.zfs
 from tests.support.zfs import ZFSMockData
 
 pytestmark = [
@@ -31,9 +33,7 @@ def utils_patch():
 
 @pytest.fixture
 def configure_loader_modules(minion_opts):
-    utils = salt.loader.utils(
-        minion_opts, whitelist=["zfs", "args", "systemd", "path", "platform"]
-    )
+    utils = salt.loader.utils(minion_opts, whitelist=["zfs", "args", "systemd", "path", "platform"])
     zpool_obj = {
         zpool: {
             "__opts__": minion_opts,
@@ -105,8 +105,7 @@ def test_status(utils_patch):
         [
             "  pool: mypool",
             " state: ONLINE",
-            "  scan: scrub repaired 0 in 0h6m with 0 errors on Mon Dec 21 02:06:17"
-            " 2015",
+            "  scan: scrub repaired 0 in 0h6m with 0 errors on Mon Dec 21 02:06:17" " 2015",
             "config:",
             "",
             "\tNAME        STATE     READ WRITE CKSUM",
@@ -137,8 +136,7 @@ def test_status_with_colons_in_vdevs(utils_patch):
         [
             "  pool: mypool",
             " state: ONLINE",
-            "  scan: scrub repaired 0 in 0h6m with 0 errors on Mon Dec 21 02:06:17"
-            " 2015",
+            "  scan: scrub repaired 0 in 0h6m with 0 errors on Mon Dec 21 02:06:17" " 2015",
             "config:",
             "",
             "\tNAME        STATE     READ WRITE CKSUM",
@@ -456,9 +454,7 @@ def test_split_missing_pool(utils_patch):
         zpool.__utils__, utils_patch
     ):
         ret = zpool.split("datapool", "backuppool")
-        res = OrderedDict(
-            [("split", False), ("error", "cannot open 'datapool': no such pool")]
-        )
+        res = OrderedDict([("split", False), ("error", "cannot open 'datapool': no such pool")])
         assert ret == res
 
 
@@ -469,9 +465,7 @@ def test_split_not_mirror(utils_patch):
     """
     ret = {}
     ret["stdout"] = ""
-    ret["stderr"] = (
-        "Unable to split datapool: Source pool must be composed only of mirrors"
-    )
+    ret["stderr"] = "Unable to split datapool: Source pool must be composed only of mirrors"
     ret["retcode"] = 1
     mock_cmd = MagicMock(return_value=ret)
 
@@ -484,8 +478,7 @@ def test_split_not_mirror(utils_patch):
                 ("split", False),
                 (
                     "error",
-                    "Unable to split datapool: Source pool must be composed only of"
-                    " mirrors",
+                    "Unable to split datapool: Source pool must be composed only of" " mirrors",
                 ),
             ]
         )
@@ -618,8 +611,7 @@ def test_create_file_vdev_nospace(utils_patch):
     ret = {}
     ret["stdout"] = ""
     ret["stderr"] = (
-        "/vdisks/disk0: initialized 10424320 of 67108864 bytes: No space left on"
-        " device"
+        "/vdisks/disk0: initialized 10424320 of 67108864 bytes: No space left on" " device"
     )
     ret["retcode"] = 1
     mock_cmd = MagicMock(return_value=ret)
@@ -681,9 +673,7 @@ def test_export_nopool(utils_patch):
         zpool.__utils__, utils_patch
     ):
         ret = zpool.export("mypool")
-        res = OrderedDict(
-            [("exported", False), ("error", "cannot open 'mypool': no such pool")]
-        )
+        res = OrderedDict([("exported", False), ("error", "cannot open 'mypool': no such pool")])
         assert ret == res
 
 
@@ -715,8 +705,7 @@ def test_import_duplicate(utils_patch):
     ret["stderr"] = "\n".join(
         [
             "cannot import 'mypool': a pool with that name already exists",
-            "use the form 'zpool import <pool | id> <newpool>' to give it a new"
-            " name",
+            "use the form 'zpool import <pool | id> <newpool>' to give it a new" " name",
         ]
     )
     ret["retcode"] = 1
@@ -906,9 +895,7 @@ def test_reguid_nopool(utils_patch):
         zpool.__utils__, utils_patch
     ):
         ret = zpool.reguid("mypool")
-        res = OrderedDict(
-            [("reguided", False), ("error", "cannot open 'mypool': no such pool")]
-        )
+        res = OrderedDict([("reguided", False), ("error", "cannot open 'mypool': no such pool")])
         assert ret == res
 
 
@@ -945,9 +932,7 @@ def test_reopen_nopool(utils_patch):
         zpool.__utils__, utils_patch
     ):
         ret = zpool.reopen("mypool")
-        res = OrderedDict(
-            [("reopened", False), ("error", "cannot open 'mypool': no such pool")]
-        )
+        res = OrderedDict([("reopened", False), ("error", "cannot open 'mypool': no such pool")])
         assert ret == res
 
 
@@ -983,9 +968,7 @@ def test_upgrade_nopool(utils_patch):
         zpool.__utils__, utils_patch
     ):
         ret = zpool.upgrade("mypool")
-        res = OrderedDict(
-            [("upgraded", False), ("error", "cannot open 'mypool': no such pool")]
-        )
+        res = OrderedDict([("upgraded", False), ("error", "cannot open 'mypool': no such pool")])
         assert ret == res
 
 
@@ -999,8 +982,7 @@ def test_history_success(utils_patch):
         [
             "History for 'mypool':",
             "2018-01-18.16:56:12 zpool create -f mypool /dev/rdsk/c0t0d0",
-            "2018-01-19.16:01:55 zpool attach -f mypool /dev/rdsk/c0t0d0"
-            " /dev/rdsk/c0t0d1",
+            "2018-01-19.16:01:55 zpool attach -f mypool /dev/rdsk/c0t0d0" " /dev/rdsk/c0t0d1",
         ]
     )
     ret["stderr"] = ""
@@ -1023,8 +1005,7 @@ def test_history_success(utils_patch):
                             ),
                             (
                                 "2018-01-19.16:01:55",
-                                "zpool attach -f mypool /dev/rdsk/c0t0d0"
-                                " /dev/rdsk/c0t0d1",
+                                "zpool attach -f mypool /dev/rdsk/c0t0d0" " /dev/rdsk/c0t0d1",
                             ),
                         ]
                     ),
@@ -1084,9 +1065,7 @@ def test_clear_nopool(utils_patch):
         zpool.__utils__, utils_patch
     ):
         ret = zpool.clear("mypool")
-        res = OrderedDict(
-            [("cleared", False), ("error", "cannot open 'mypool': no such pool")]
-        )
+        res = OrderedDict([("cleared", False), ("error", "cannot open 'mypool': no such pool")])
 
 
 def test_clear_nodevice(utils_patch):
@@ -1108,8 +1087,7 @@ def test_clear_nodevice(utils_patch):
                 ("cleared", False),
                 (
                     "error",
-                    "cannot clear errors for /dev/rdsk/c0t0d0: no such device in"
-                    " pool",
+                    "cannot clear errors for /dev/rdsk/c0t0d0: no such device in" " pool",
                 ),
             ]
         )

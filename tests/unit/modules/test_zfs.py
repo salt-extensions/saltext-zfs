@@ -8,14 +8,16 @@ Tests for salt.modules.zfs
 :platform:      illumos,freebsd,linux
 """
 
-import pytest
+from unittest.mock import MagicMock
+from unittest.mock import patch
 
+import pytest
 import salt.loader
-import salt.modules.zfs as zfs
-import salt.utils.zfs
 from salt.utils.dateutils import strftime
 from salt.utils.odict import OrderedDict
-from tests.support.mock import MagicMock, patch
+
+import saltext.zfs.modules.zfs as zfs
+import saltext.zfs.utils.zfs
 from tests.support.zfs import ZFSMockData
 
 pytestmark = [
@@ -30,9 +32,7 @@ def utils_patch():
 
 @pytest.fixture
 def configure_loader_modules(minion_opts):
-    utils = salt.loader.utils(
-        minion_opts, whitelist=["zfs", "args", "systemd", "path", "platform"]
-    )
+    utils = salt.loader.utils(minion_opts, whitelist=["zfs", "args", "systemd", "path", "platform"])
     zfs_obj = {zfs: {"__opts__": minion_opts, "__utils__": utils}}
     return zfs_obj
 
@@ -208,16 +208,13 @@ def test_create_error_missing_parent(utils_patch):
             ("created", False),
             (
                 "error",
-                "cannot create 'myzpool/mydataset/mysubdataset': parent does not"
-                " exist",
+                "cannot create 'myzpool/mydataset/mysubdataset': parent does not" " exist",
             ),
         ]
     )
     ret = {}
     ret["stdout"] = ""
-    ret["stderr"] = (
-        "cannot create 'myzpool/mydataset/mysubdataset': parent does not exist"
-    )
+    ret["stderr"] = "cannot create 'myzpool/mydataset/mysubdataset': parent does not exist"
     ret["retcode"] = 1
     mock_cmd = MagicMock(return_value=ret)
     with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
@@ -274,8 +271,7 @@ def test_destroy_error_has_children(utils_patch):
                 "error",
                 "\n".join(
                     [
-                        "cannot destroy 'myzpool/mydataset': filesystem has"
-                        " children",
+                        "cannot destroy 'myzpool/mydataset': filesystem has" " children",
                         "use 'recursive=True' to destroy the following datasets:",
                         "myzpool/mydataset@snapshot",
                     ]
@@ -487,9 +483,7 @@ def test_list_mount_success(utils_patch):
     res = OrderedDict([("myzpool/data", "/data"), ("myzpool/data/ares", "/data/ares")])
     ret = {}
     ret["retcode"] = 0
-    ret["stdout"] = "\n".join(
-        ["myzpool/data\t\t\t\t/data", "myzpool/data/ares\t\t\t/data/ares"]
-    )
+    ret["stdout"] = "\n".join(["myzpool/data\t\t\t\t/data", "myzpool/data/ares\t\t\t/data/ares"])
     ret["stderr"] = ""
     mock_cmd = MagicMock(return_value=ret)
     with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
@@ -766,9 +760,7 @@ def test_clone_failure(utils_patch):
     with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
         zfs.__utils__, utils_patch
     ):
-        assert res == zfs.clone(
-            "myzpool/mydataset@yesterday", "myzpool/archive/yesterday"
-        )
+        assert res == zfs.clone("myzpool/mydataset@yesterday", "myzpool/archive/yesterday")
 
 
 @pytest.mark.slow_test
@@ -823,9 +815,7 @@ def test_bookmark_success(utils_patch):
         with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
             zfs.__utils__, utils_patch
         ):
-            assert res == zfs.bookmark(
-                "myzpool/mydataset@yesterday", "myzpool/mydataset#important"
-            )
+            assert res == zfs.bookmark("myzpool/mydataset@yesterday", "myzpool/mydataset#important")
 
 
 @pytest.mark.slow_test
@@ -997,8 +987,7 @@ def test_snapshot_failure(utils_patch):
             ("snapshotted", False),
             (
                 "error",
-                "cannot create snapshot 'myzpool/mydataset@baseline': dataset"
-                " already exists",
+                "cannot create snapshot 'myzpool/mydataset@baseline': dataset" " already exists",
             ),
         ]
     )
@@ -1006,8 +995,7 @@ def test_snapshot_failure(utils_patch):
         "pid": 68526,
         "retcode": 1,
         "stderr": (
-            "cannot create snapshot 'myzpool/mydataset@baseline': dataset already"
-            " exists"
+            "cannot create snapshot 'myzpool/mydataset@baseline': dataset already" " exists"
         ),
         "stdout": "",
     }
@@ -1119,9 +1107,7 @@ def test_get_parsable_success(utils_patch):
     """
     Tests zfs get with parsable output
     """
-    res = OrderedDict(
-        [("myzpool", OrderedDict([("used", OrderedDict([("value", "844G")]))]))]
-    )
+    res = OrderedDict([("myzpool", OrderedDict([("used", OrderedDict([("value", "844G")]))]))])
     ret = {
         "pid": 562,
         "retcode": 0,
@@ -1132,6 +1118,4 @@ def test_get_parsable_success(utils_patch):
     with patch.dict(zfs.__salt__, {"cmd.run_all": mock_cmd}), patch.dict(
         zfs.__utils__, utils_patch
     ):
-        assert res == zfs.get(
-            "myzpool", properties="used", fields="value", parsable=False
-        )
+        assert res == zfs.get("myzpool", properties="used", fields="value", parsable=False)
