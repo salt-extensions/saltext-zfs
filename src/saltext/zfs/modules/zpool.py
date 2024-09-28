@@ -1,22 +1,10 @@
 """
-Module for running ZFS zpool command
-
-:codeauthor:    Nitin Madhok <nmadhok@g.clemson.edu>, Jorge Schrauwen <sjorge@blackdot.be>
-:maintainer:    Jorge Schrauwen <sjorge@blackdot.be>
-:maturity:      new
-:depends:       salt.utils.zfs
-:platform:      illumos,freebsd,linux
-
-.. versionchanged:: 2018.3.1
-  Big refactor to remove duplicate code, better type conversions and improved
-  consistency in output.
-
+Run ZFS zpool commands.
 """
 
 import logging
 import os
 
-import salt.utils.decorators
 import salt.utils.decorators.path
 import salt.utils.path
 from salt.utils.odict import OrderedDict
@@ -33,13 +21,9 @@ __func_alias__ = {
 
 
 def __virtual__():
-    """
-    Only load when the platform has zfs support
-    """
     if __grains__.get("zfs_support"):
         return __virtualname__
-    else:
-        return False, "The zpool module cannot be loaded: zfs not supported"
+    return False, "The zpool module cannot be loaded: zfs not supported"
 
 
 def _clean_vdev_config(config):
@@ -73,8 +57,6 @@ def healthy():
     """
     Check if all zpools are healthy
 
-    .. versionadded:: 2016.3.0
-
     CLI Example:
 
     .. code-block:: bash
@@ -100,8 +82,6 @@ def status(zpool=None):
 
     zpool : string
         optional name of storage pool
-
-    .. versionadded:: 2016.3.0
 
     CLI Example:
 
@@ -244,11 +224,6 @@ def iostat(zpool=None, sample_time=5, parsable=True):
     parsable : boolean
         display data in pythonc values (True, False, Bytes,...)
 
-    .. versionadded:: 2016.3.0
-    .. versionchanged:: 2018.3.1
-
-        Added ```parsable``` parameter that defaults to True
-
     CLI Example:
 
     .. code-block:: bash
@@ -349,8 +324,6 @@ def iostat(zpool=None, sample_time=5, parsable=True):
 
 def list_(properties="size,alloc,free,cap,frag,health", zpool=None, parsable=True):
     """
-    .. versionadded:: 2015.5.0
-
     Return information about (all) storage pools
 
     zpool : string
@@ -361,8 +334,6 @@ def list_(properties="size,alloc,free,cap,frag,health", zpool=None, parsable=Tru
 
     parsable : boolean
         display numbers in parsable (exact) values
-
-        .. versionadded:: 2018.3.0
 
     .. note::
 
@@ -450,8 +421,6 @@ def list_(properties="size,alloc,free,cap,frag,health", zpool=None, parsable=Tru
 
 def get(zpool, prop=None, show_source=False, parsable=True):
     """
-    .. versionadded:: 2016.3.0
-
     Retrieves the given list of properties
 
     zpool : string
@@ -465,8 +434,6 @@ def get(zpool, prop=None, show_source=False, parsable=True):
 
     parsable : boolean
         Display numbers in parsable (exact) values
-
-        .. versionadded:: 2018.3.0
 
     CLI Example:
 
@@ -549,8 +516,6 @@ def set(zpool, prop, value):
 
     value : string
         Value to set for the specified property
-
-    .. versionadded:: 2016.3.0
 
     CLI Example:
 
@@ -644,7 +609,6 @@ def scrub(zpool, stop=False, pause=False):
     pause : boolean
         If ``True``, pause ongoing scrub
 
-        .. versionadded:: 2018.3.0
 
         .. note::
 
@@ -691,8 +655,6 @@ def scrub(zpool, stop=False, pause=False):
 
 def create(zpool, *vdevs, **kwargs):
     """
-    .. versionadded:: 2015.5.0
-
     Create a simple zpool, a mirrored zpool, a zpool having nested VDEVs, a hybrid zpool with cache, spare and log drives or a zpool with RAIDZ-1, RAIDZ-2 or RAIDZ-3
 
     zpool : string
@@ -720,7 +682,6 @@ def create(zpool, *vdevs, **kwargs):
     createboot : boolean
         create a boot partition
 
-        .. versionadded:: 2018.3.0
 
         .. warning:
           This is only available on illumos and Solaris
@@ -967,8 +928,6 @@ def detach(zpool, device):
 
 def split(zpool, newzpool, **kwargs):
     """
-    .. versionadded:: 2018.3.0
-
     Splits devices off pool creating newpool.
 
     .. note::
@@ -1162,8 +1121,6 @@ def create_file_vdev(size, *vdevs):
 
 def export(*pools, **kwargs):
     """
-    .. versionadded:: 2015.5.0
-
     Export storage pools
 
     pools : string
@@ -1207,8 +1164,6 @@ def export(*pools, **kwargs):
 
 def import_(zpool=None, new_name=None, **kwargs):
     """
-    .. versionadded:: 2015.5.0
-
     Import storage pools or list pools available for import
 
     zpool : string
@@ -1232,7 +1187,7 @@ def import_(zpool=None, new_name=None, **kwargs):
         follows: ``dir="dir1,dir2"``
 
     no_mount : boolean
-        Import the pool without mounting any file systems.
+        Import the pool without mounting any filesystems.
 
     only_destroyed : boolean
         Imports destroyed pools only. This also sets ``force=True``.
@@ -1330,8 +1285,6 @@ def import_(zpool=None, new_name=None, **kwargs):
 
 def online(zpool, *vdevs, **kwargs):
     """
-    .. versionadded:: 2015.5.0
-
     Ensure that the specified devices are online
 
     zpool : string
@@ -1395,8 +1348,6 @@ def online(zpool, *vdevs, **kwargs):
 
 def offline(zpool, *vdevs, **kwargs):
     """
-    .. versionadded:: 2015.5.0
-
     Ensure that the specified devices are offline
 
     .. warning::
@@ -1449,8 +1400,6 @@ def offline(zpool, *vdevs, **kwargs):
 
 def labelclear(device, force=False):
     """
-    .. versionadded:: 2018.3.0
-
     Removes ZFS label information from the specified device
 
     device : string
@@ -1492,8 +1441,6 @@ def clear(zpool, device=None):
     device : string
         (optional) specific device to clear
 
-    .. versionadded:: 2018.3.1
-
     CLI Example:
 
     .. code-block:: bash
@@ -1533,8 +1480,6 @@ def reguid(zpool):
     zpool : string
         name of storage pool
 
-    .. versionadded:: 2016.3.0
-
     CLI Example:
 
     .. code-block:: bash
@@ -1560,8 +1505,6 @@ def reopen(zpool):
     zpool : string
         name of storage pool
 
-    .. versionadded:: 2016.3.0
-
     CLI Example:
 
     .. code-block:: bash
@@ -1583,8 +1526,6 @@ def reopen(zpool):
 
 def upgrade(zpool=None, version=None):
     """
-    .. versionadded:: 2016.3.0
-
     Enables all supported features on the given pool
 
     zpool : string
@@ -1632,8 +1573,6 @@ def upgrade(zpool=None, version=None):
 
 def history(zpool=None, internal=False, verbose=False):
     """
-    .. versionadded:: 2016.3.0
-
     Displays the command history of the specified pools, or all pools if no
     pool is specified
 

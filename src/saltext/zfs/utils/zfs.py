@@ -1,15 +1,7 @@
 """
-Utility functions for zfs
+Utility functions for ZFS
 
 These functions are for dealing with type conversion and basic execution
-
-:maintainer:    Jorge Schrauwen <sjorge@blackdot.be>
-:maturity:      new
-:depends:       salt.utils.stringutils, salt.ext, salt.module.cmdmod
-:platform:      illumos,freebsd,linux
-
-.. versionadded:: 2018.3.1
-
 """
 
 import logging
@@ -523,7 +515,7 @@ def to_size(value, convert_to_human=True):
     """
     Convert python int (bytes) to zfs size
 
-    NOTE: http://src.illumos.org/source/xref/illumos-gate/usr/src/lib/pyzfs/common/util.py#114
+    NOTE: https://src.illumos.org/source/xref/illumos-gate/usr/src/lib/pyzfs/common/util.py?#114
     """
     value = from_size(value)
     if value is None:

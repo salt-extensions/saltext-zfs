@@ -15,6 +15,8 @@ name = "saltext.zfs"
 description = "Salt Extension for interacting with ZFS"
 authors = [
     {name = "jeanluc", email = "lkubb@protonmail.com"},
+    {name = "Jorge Schrauwen", email = "sjorge@blackdot.be"},
+    {name = "Nitin Madhok", email = "nmadhok@g.clemson.edu"},
 ]
 keywords = [
     "salt-extension",

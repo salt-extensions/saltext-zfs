@@ -18,6 +18,7 @@ Salt Extension for interacting with ZFS
   ref/grains/index
   ref/modules/index
   ref/states/index
+  ref/utils/index
 
 .. toctree::
   :maxdepth: 2

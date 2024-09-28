@@ -1,13 +1,5 @@
 """
 ZFS grain provider
-
-:maintainer:    Jorge Schrauwen <sjorge@blackdot.be>
-:maturity:      new
-:depends:       salt.module.cmdmod
-:platform:      illumos,freebsd,linux
-
-.. versionadded:: 2018.3.0
-
 """
 
 import logging
@@ -16,7 +8,6 @@ import logging
 # of the modules are loaded and are generally available for any usage.
 import salt.modules.cmdmod
 import salt.utils.dictupdate
-import salt.utils.path
 import salt.utils.platform
 
 import saltext.zfs.utils.zfs
@@ -25,23 +16,14 @@ __virtualname__ = "zfs"
 __salt__ = {
     "cmd.run": salt.modules.cmdmod.run,
 }
-__utils__ = {
-    "zfs.is_supported": saltext.zfs.utils.zfs.is_supported,
-    "zfs.has_feature_flags": saltext.zfs.utils.zfs.has_feature_flags,
-    "zfs.zpool_command": saltext.zfs.utils.zfs.zpool_command,
-    "zfs.to_size": saltext.zfs.utils.zfs.to_size,
-}
 
 log = logging.getLogger(__name__)
 
 
 def __virtual__():
-    """
-    Load zfs grains
-    """
-    # NOTE: we always load this grain so we can properly export
-    #       at least the zfs_support grain
-    #       except for Windows... don't try to load this on Windows (#51703)
+    # We always load this grain so we can properly export
+    # at least the zfs_support grain
+    # except for Windows... don't try to load this on Windows (#51703)
     if salt.utils.platform.is_windows():
         return False, "ZFS: Not available on Windows"
     return __virtualname__
@@ -65,7 +47,6 @@ def _zfs_pool_data():
         zpool = zpool.split()
         grains["zpool"][zpool[0]] = saltext.zfs.utils.zfs.to_size(zpool[1], False)
 
-    # return grain data
     return grains
 
 

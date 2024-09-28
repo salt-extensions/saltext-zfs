@@ -1,26 +1,12 @@
 """
-Module for running ZFS command
-
-:codeauthor:    Nitin Madhok <nmadhok@g.clemson.edu>, Jorge Schrauwen <sjorge@blackdot.be>
-:maintainer:    Jorge Schrauwen <sjorge@blackdot.be>
-:maturity:      new
-:depends:       salt.utils.zfs
-:platform:      illumos,freebsd,linux
-
-.. versionchanged:: 2018.3.1
-  Big refactor to remove duplicate code, better type conversions and improved
-  consistency in output.
-
+Run ZFS commands.
 """
 
 import logging
 
-import salt.modules.cmdmod
 import salt.utils.args
 import salt.utils.dateutils
-import salt.utils.path
 import salt.utils.platform
-import salt.utils.versions
 from salt.utils.odict import OrderedDict
 
 import saltext.zfs.utils.zfs
@@ -28,20 +14,15 @@ import saltext.zfs.utils.zfs
 __virtualname__ = "zfs"
 log = logging.getLogger(__name__)
 
-# Function alias to set mapping.
 __func_alias__ = {
     "list_": "list",
 }
 
 
 def __virtual__():
-    """
-    Only load when the platform has zfs support
-    """
     if __grains__.get("zfs_support"):
         return __virtualname__
-    else:
-        return False, "The zfs module cannot be loaded: zfs not supported"
+    return False, "The zfs module cannot be loaded: zfs not supported"
 
 
 def exists(name, **kwargs):
@@ -53,8 +34,6 @@ def exists(name, **kwargs):
     type : string
         also check if dataset is of a certain type, valid choices are:
         filesystem, snapshot, volume, bookmark, or all.
-
-    .. versionadded:: 2015.5.0
 
     CLI Example:
 
@@ -88,7 +67,7 @@ def exists(name, **kwargs):
 
 def create(name, **kwargs):
     """
-    Create a ZFS File System.
+    Create a ZFS filesystem.
 
     name : string
         name of dataset or volume
@@ -109,8 +88,6 @@ def create(name, **kwargs):
         with their respective values in the form of a python dictionary::
 
             properties="{'property1': 'value1', 'property2': 'value2'}"
-
-    .. versionadded:: 2015.5.0
 
     CLI Example:
 
@@ -157,22 +134,20 @@ def create(name, **kwargs):
 
 def destroy(name, **kwargs):
     """
-    Destroy a ZFS File System.
+    Destroy a ZFS filesystem.
 
     name : string
         name of dataset, volume, or snapshot
     force : boolean
-        force an unmount of any file systems using the unmount -f command.
+        force an unmount of any filesystems using the unmount -f command.
     recursive : boolean
         recursively destroy all children. (-r)
     recursive_all : boolean
-        recursively destroy all dependents, including cloned file systems
+        recursively destroy all dependents, including cloned filesystems
         outside the target hierarchy. (-R)
 
     .. warning::
         watch out when using recursive and recursive_all
-
-    .. versionadded:: 2015.5.0
 
     CLI Example:
 
@@ -208,7 +183,7 @@ def destroy(name, **kwargs):
 
 def rename(name, new_name, **kwargs):
     """
-    Rename or Relocate a ZFS File System.
+    Rename or relocate a ZFS filesystem.
 
     name : string
         name of dataset, volume, or snapshot
@@ -223,8 +198,6 @@ def rename(name, new_name, **kwargs):
     recursive : boolean
         recursively rename the snapshots of all descendent datasets.
         snapshots are the only dataset that can be renamed recursively.
-
-    .. versionadded:: 2015.5.0
 
     CLI Example:
 
@@ -293,9 +266,6 @@ def list_(name=None, **kwargs):
         sort order (default = ascending)
     parsable : boolean
         display numbers in parsable (exact) values
-        .. versionadded:: 2018.3.0
-
-    .. versionadded:: 2015.5.0
 
     CLI Example:
 
@@ -377,9 +347,7 @@ def list_(name=None, **kwargs):
 
 def list_mount():
     """
-    List mounted zfs filesystems
-
-    .. versionadded:: 2018.3.1
+    List mounted ZFS filesystems
 
     CLI Example:
 
@@ -408,7 +376,7 @@ def list_mount():
 
 def mount(name=None, **kwargs):
     """
-    Mounts ZFS file systems
+    Mounts ZFS filesystems
 
     name : string
         name of the filesystem, having this set to None will mount all filesystems. (this is the default)
@@ -417,13 +385,6 @@ def mount(name=None, **kwargs):
     options : string
         optional comma-separated list of mount options to use temporarily for
         the duration of the mount.
-
-    .. versionadded:: 2016.3.0
-    .. versionchanged:: 2018.3.1
-
-    .. warning::
-
-            Passing '-a' as name is deprecated and will be removed in 3001.
 
     CLI Example:
 
@@ -461,23 +422,12 @@ def mount(name=None, **kwargs):
 
 def unmount(name, **kwargs):
     """
-    Unmounts ZFS file systems
+    Unmounts ZFS filesystems
 
     name : string
         name of the filesystem, you can use None to unmount all mounted filesystems.
     force : boolean
-        forcefully unmount the file system, even if it is currently in use.
-
-    .. warning::
-
-        Using ``-a`` for the name parameter will probably break your system, unless your rootfs is not on zfs.
-
-    .. versionadded:: 2016.3.0
-    .. versionchanged:: 2018.3.1
-
-    .. warning::
-
-            Passing '-a' as name is deprecated and will be removed in 3001.
+        forcefully unmount the filesystem, even if it is currently in use.
 
     CLI Example:
 
@@ -493,10 +443,7 @@ def unmount(name, **kwargs):
     # NOTE: set extra config from kwargs
     if kwargs.get("force", False):
         flags.append("-f")
-    if name in [None, "-a"]:
-        # NOTE: still accept '-a' as name for backwards compatibility
-        #       until Salt 3001 this should just simplify
-        #       this to just set '-a' if name is not set.
+    if not name:
         flags.append("-a")
         name = None
 
@@ -526,8 +473,6 @@ def inherit(prop, name, **kwargs):
     revert : boolean
         revert the property to the received value if one exists; otherwise
         operate as if the -S option was not specified.
-
-    .. versionadded:: 2016.3.0
 
     CLI Example:
 
@@ -576,8 +521,6 @@ def diff(name_a, name_b=None, **kwargs):
         display an indication of the type of file. (default = True)
     parsable : boolean
         if true we don't parse the timestamp to a more readable date (default = True)
-
-    .. versionadded:: 2016.3.0
 
     CLI Example:
 
@@ -653,8 +596,6 @@ def rollback(name, **kwargs):
         In order to do so, all intermediate snapshots and bookmarks
         must be destroyed by specifying the -r option.
 
-    .. versionadded:: 2016.3.0
-
     CLI Example:
 
     .. code-block:: bash
@@ -715,8 +656,6 @@ def clone(name_a, name_b, **kwargs):
 
             properties="{'property1': 'value1', 'property2': 'value2'}"
 
-    .. versionadded:: 2016.3.0
-
     CLI Example:
 
     .. code-block:: bash
@@ -756,19 +695,19 @@ def clone(name_a, name_b, **kwargs):
 
 def promote(name):
     """
-    Promotes a clone file system to no longer be dependent on its "origin"
+    Promotes a clone filesystem to no longer be dependent on its "origin"
     snapshot.
 
     .. note::
 
-        This makes it possible to destroy the file system that the
+        This makes it possible to destroy the filesystem that the
         clone was created from. The clone parent-child dependency relationship
-        is reversed, so that the origin file system becomes a clone of the
-        specified file system.
+        is reversed, so that the origin filesystem becomes a clone of the
+        specified filesystem.
 
         The snapshot that was cloned, and any snapshots previous to this
         snapshot, are now owned by the promoted clone. The space they use moves
-        from the origin file system to the promoted clone, so enough space must
+        from the origin filesystem to the promoted clone, so enough space must
         be available to accommodate these snapshots. No new space is consumed
         by this operation, but the space accounting is adjusted. The promoted
         clone must not have any conflicting snapshot names of its own. The
@@ -776,8 +715,6 @@ def promote(name):
 
     name : string
         name of clone-filesystem
-
-    .. versionadded:: 2016.3.0
 
     CLI Example:
 
@@ -814,8 +751,6 @@ def bookmark(snapshot, bookmark):
         name of snapshot to bookmark
     bookmark : string
         name of bookmark
-
-    .. versionadded:: 2016.3.0
 
     CLI Example:
 
@@ -856,8 +791,6 @@ def holds(snapshot, **kwargs):
         name of snapshot
     recursive : boolean
         lists the holds that are set on the named descendent snapshots also.
-
-    .. versionadded:: 2016.3.0
 
     CLI Example:
 
@@ -922,15 +855,7 @@ def hold(tag, *snapshot, **kwargs):
         name of snapshot(s)
     recursive : boolean
         specifies that a hold with the given tag is applied recursively to
-        the snapshots of all descendent file systems.
-
-    .. versionadded:: 2016.3.0
-    .. versionchanged:: 2018.3.1
-
-    .. warning::
-
-        As of 2018.3.1 the tag parameter no longer accepts a comma-separated value.
-        It's is now possible to create a tag that contains a comma, this was impossible before.
+        the snapshots of all descendent filesystems.
 
     CLI Example:
 
@@ -983,15 +908,7 @@ def release(tag, *snapshot, **kwargs):
         name of snapshot(s)
     recursive : boolean
         recursively releases a hold with the given tag on the snapshots of
-        all descendent file systems.
-
-    .. versionadded:: 2016.3.0
-    .. versionchanged:: 2018.3.1
-
-    .. warning::
-
-        As of 2018.3.1 the tag parameter no longer accepts a comma-separated value.
-        It's is now possible to create a tag that contains a comma, this was impossible before.
+        all descendent filesystems.
 
     CLI Example:
 
@@ -1045,8 +962,6 @@ def snapshot(*snapshot, **kwargs):
         with their respective values in the form of a python dictionary::
 
             properties="{'property1': 'value1', 'property2': 'value2'}"
-
-    .. versionadded:: 2016.3.0
 
     CLI Example:
 
@@ -1107,8 +1022,6 @@ def set(*dataset, **kwargs):
         form with a suffix of B, K, M, G, T, P, E (for bytes, kilobytes,
         megabytes, gigabytes, terabytes, petabytes, or exabytes respectively).
 
-    .. versionadded:: 2016.3.0
-
     CLI Example:
 
     .. code-block:: bash
@@ -1153,9 +1066,6 @@ def get(*dataset, **kwargs):
     type : string
         comma-separated list of types to display, where type is one of
         filesystem, snapshot, volume, bookmark, or all.
-
-        .. versionchanged:: 3004
-
         type is ignored on Solaris 10 and 11 since not a valid parameter on those platforms
 
     source : string
@@ -1163,13 +1073,10 @@ def get(*dataset, **kwargs):
         local, default, inherited, temporary, and none. The default value is all sources.
     parsable : boolean
         display numbers in parsable (exact) values (default = True)
-        .. versionadded:: 2018.3.0
 
     .. note::
         If no datasets are specified, then the command displays properties
         for all datasets on the system.
-
-    .. versionadded:: 2016.3.0
 
     CLI Example:
 

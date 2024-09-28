@@ -1,15 +1,8 @@
 """
-States for managing zfs datasets
+Manage ZFS datasets statefully.
 
-:maintainer:    Jorge Schrauwen <sjorge@blackdot.be>
-:maturity:      new
-:depends:       salt.utils.zfs, salt.modules.zfs
-:platform:      smartos, illumos, solaris, freebsd, linux
-
-.. versionadded:: 2016.3.0
-.. versionchanged:: 2018.3.1
-  Big refactor to remove duplicate code, better type conversions and improved
-  consistency in output.
+Example
+-------
 
 .. code-block:: yaml
 
@@ -40,7 +33,6 @@ States for managing zfs datasets
 
     test/shares/moka@tsukune:
       zfs.snapshot_absent
-
 """
 
 import logging
@@ -52,7 +44,6 @@ import saltext.zfs.utils.zfs
 
 log = logging.getLogger(__name__)
 
-# Define the state's virtual name
 __virtualname__ = "zfs"
 
 # Compare modifiers for zfs.schedule_snapshot
@@ -63,9 +54,6 @@ comp_year = {"minute": 0, "hour": 0, "day": 1, "month": 1}
 
 
 def __virtual__():
-    """
-    Provides zfs state
-    """
     if not __grains__.get("zfs_support"):
         return False, "The zfs state cannot be loaded: zfs not supported"
     return __virtualname__
@@ -123,7 +111,7 @@ def _absent(name, dataset_type, force=False, recursive=False):
 
 def filesystem_absent(name, force=False, recursive=False):
     """
-    ensure filesystem is absent on the system
+    Ensure a filesystem is absent from the system.
 
     name : string
         name of filesystem
@@ -152,7 +140,7 @@ def filesystem_absent(name, force=False, recursive=False):
 
 def volume_absent(name, force=False, recursive=False):
     """
-    ensure volume is absent on the system
+    Ensure a volume is absent from the system.
 
     name : string
         name of volume
@@ -181,7 +169,7 @@ def volume_absent(name, force=False, recursive=False):
 
 def snapshot_absent(name, force=False, recursive=False):
     """
-    ensure snapshot is absent on the system
+    Ensure a snapshot is absent from the system.
 
     name : string
         name of snapshot
@@ -205,7 +193,7 @@ def snapshot_absent(name, force=False, recursive=False):
 
 def bookmark_absent(name, force=False, recursive=False):
     """
-    ensure bookmark is absent on the system
+    Ensure a bookmark is absent from the system.
 
     name : string
         name of snapshot
@@ -229,14 +217,14 @@ def bookmark_absent(name, force=False, recursive=False):
 
 def hold_absent(name, snapshot, recursive=False):
     """
-    ensure hold is absent on the system
+    Ensure a hold is absent from the system.
 
     name : string
         name of hold
     snapshot : string
         name of snapshot
     recursive : boolean
-        recursively releases a hold with the given tag on the snapshots of all descendent file systems.
+        recursively releases a hold with the given tag on the snapshots of all descendent filesystems.
 
     """
     ret = {"name": name, "changes": {}, "result": True, "comment": ""}
@@ -296,14 +284,14 @@ def hold_absent(name, snapshot, recursive=False):
 
 def hold_present(name, snapshot, recursive=False):
     """
-    ensure hold is present on the system
+    Ensure a hold is present on the system.
 
     name : string
         name of holdt
     snapshot : string
         name of snapshot
     recursive : boolean
-        recursively add hold with the given tag on the snapshots of all descendent file systems.
+        recursively add hold with the given tag on the snapshots of all descendent filesystems.
 
     """
     ret = {"name": name, "changes": {}, "result": True, "comment": ""}
@@ -549,7 +537,7 @@ def _dataset_present(
 
 def filesystem_present(name, create_parent=False, properties=None, cloned_from=None):
     """
-    ensure filesystem exists and has properties set
+    Ensure a filesystem exists and has properties set.
 
     name : string
         name of filesystem
@@ -588,7 +576,7 @@ def volume_present(
     cloned_from=None,
 ):
     """
-    ensure volume exists and has properties set
+    Ensure a volume exists and has properties set.
 
     name : string
         name of volume
@@ -632,7 +620,7 @@ def volume_present(
 
 def bookmark_present(name, snapshot):
     """
-    ensure bookmark exists
+    Ensure a bookmark exists.
 
     name : string
         name of bookmark
@@ -688,7 +676,7 @@ def bookmark_present(name, snapshot):
 
 def snapshot_present(name, recursive=False, properties=None):
     """
-    ensure snapshot exists and has properties set
+    Ensure a snapshot exists and has properties set.
 
     name : string
         name of snapshot
@@ -746,7 +734,7 @@ def snapshot_present(name, recursive=False, properties=None):
 
 def promoted(name):
     """
-    ensure a dataset is not a clone
+    Ensure a dataset is not a clone.
 
     name : string
         name of fileset or volume
@@ -903,7 +891,7 @@ def _schedule_snapshot_prepare(dataset, prefix, snapshots):
 
 def scheduled_snapshot(name, prefix, recursive=True, schedule=None):
     """
-    maintain a set of snapshots based on a schedule
+    Maintain a set of snapshots based on a schedule.
 
     name : string
         name of filesystem or volume
@@ -922,10 +910,6 @@ def scheduled_snapshot(name, prefix, recursive=True, schedule=None):
         snapshots will only be created and pruned every time the state runs.
         a schedule must be setup to automatically run the state. this means that if
         you run the state daily the hourly snapshot will only be made once per day!
-
-    .. versionchanged:: 2018.3.0
-
-        switched to localtime from gmtime so times now take into account timezones.
 
     """
     ret = {"name": name, "changes": {}, "result": True, "comment": ""}

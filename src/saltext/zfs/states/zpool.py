@@ -1,15 +1,8 @@
 """
-States for managing zpools
+Manage zpools statefully.
 
-:maintainer:    Jorge Schrauwen <sjorge@blackdot.be>
-:maturity:      new
-:depends:       salt.utils.zfs, salt.modules.zpool
-:platform:      smartos, illumos, solaris, freebsd, linux
-
-.. versionadded:: 2016.3.0
-.. versionchanged:: 2018.3.1
-  Big refactor to remove duplicate code, better type conversions and improved
-  consistency in output.
+Example
+-------
 
 .. code-block:: yaml
 
@@ -66,7 +59,6 @@ States for managing zpools
     etc. This is best done by the sysadmin on a case per case basis.
 
     Filesystem properties are also not updated, this should be managed by the zfs state module.
-
 """
 
 import logging
@@ -78,14 +70,10 @@ import saltext.zfs.utils.zfs
 
 log = logging.getLogger(__name__)
 
-# Define the state's virtual name
 __virtualname__ = "zpool"
 
 
 def __virtual__():
-    """
-    Provides zpool state
-    """
     if not __grains__.get("zfs_support"):
         return False, "The zpool state cannot be loaded: zfs not supported"
     return __virtualname__
@@ -166,7 +154,7 @@ def _layout_to_vdev(layout, device_dir=None):
 
 def present(name, properties=None, filesystem_properties=None, layout=None, config=None):
     """
-    ensure storage pool is present on the system
+    Ensure a storage pool is present on the system.
 
     name : string
         name of storage pool
@@ -388,7 +376,7 @@ def present(name, properties=None, filesystem_properties=None, layout=None, conf
 
 def absent(name, export=False, force=False):
     """
-    ensure storage pool is absent on the system
+    Ensure a storage pool is absent from the system.
 
     name : string
         name of storage pool
