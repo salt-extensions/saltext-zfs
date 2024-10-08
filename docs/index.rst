@@ -1,4 +1,4 @@
-``saltext-zfs``: Integrate Salt with Zfs
+``saltext-zfs``: Integrate Salt with ZFS
 ========================================
 
 Salt Extension for interacting with ZFS
