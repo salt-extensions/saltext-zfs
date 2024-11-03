@@ -63,8 +63,9 @@ def test_absent_destroy_pool():
 
     mock_exists = MagicMock(return_value=True)
     mock_destroy = MagicMock(return_value=OrderedDict([("destroyed", True)]))
-    with patch.dict(zpool.__salt__, {"zpool.exists": mock_exists}), patch.dict(
-        zpool.__salt__, {"zpool.destroy": mock_destroy}
+    with (
+        patch.dict(zpool.__salt__, {"zpool.exists": mock_exists}),
+        patch.dict(zpool.__salt__, {"zpool.destroy": mock_destroy}),
     ):
         assert zpool.absent("myzpool") == ret
 
@@ -82,8 +83,9 @@ def test_absent_exporty_pool():
 
     mock_exists = MagicMock(return_value=True)
     mock_destroy = MagicMock(return_value=OrderedDict([("exported", True)]))
-    with patch.dict(zpool.__salt__, {"zpool.exists": mock_exists}), patch.dict(
-        zpool.__salt__, {"zpool.export": mock_destroy}
+    with (
+        patch.dict(zpool.__salt__, {"zpool.exists": mock_exists}),
+        patch.dict(zpool.__salt__, {"zpool.export": mock_destroy}),
     ):
         assert zpool.absent("myzpool", export=True) == ret
 
@@ -121,8 +123,9 @@ def test_absent_busy():
             ]
         )
     )
-    with patch.dict(zpool.__salt__, {"zpool.exists": mock_exists}), patch.dict(
-        zpool.__salt__, {"zpool.export": mock_destroy}
+    with (
+        patch.dict(zpool.__salt__, {"zpool.exists": mock_exists}),
+        patch.dict(zpool.__salt__, {"zpool.export": mock_destroy}),
     ):
         assert zpool.absent("myzpool", export=True) == ret
 
@@ -144,8 +147,9 @@ def test_present_import_success():
 
     mock_exists = MagicMock(return_value=False)
     mock_import = MagicMock(return_value=OrderedDict([("imported", True)]))
-    with patch.dict(zpool.__salt__, {"zpool.exists": mock_exists}), patch.dict(
-        zpool.__salt__, {"zpool.import": mock_import}
+    with (
+        patch.dict(zpool.__salt__, {"zpool.exists": mock_exists}),
+        patch.dict(zpool.__salt__, {"zpool.import": mock_import}),
     ):
         assert zpool.present("myzpool", config=config) == ret
 
@@ -169,8 +173,9 @@ def test_present_import_fail():
 
     mock_exists = MagicMock(return_value=False)
     mock_import = MagicMock(return_value=OrderedDict([("imported", False)]))
-    with patch.dict(zpool.__salt__, {"zpool.exists": mock_exists}), patch.dict(
-        zpool.__salt__, {"zpool.import": mock_import}
+    with (
+        patch.dict(zpool.__salt__, {"zpool.exists": mock_exists}),
+        patch.dict(zpool.__salt__, {"zpool.import": mock_import}),
     ):
         assert zpool.present("myzpool", config=config) == ret
 
@@ -217,8 +222,9 @@ def test_present_create_success():
             ]
         )
     )
-    with patch.dict(zpool.__salt__, {"zpool.exists": mock_exists}), patch.dict(
-        zpool.__salt__, {"zpool.create": mock_create}
+    with (
+        patch.dict(zpool.__salt__, {"zpool.exists": mock_exists}),
+        patch.dict(zpool.__salt__, {"zpool.create": mock_create}),
     ):
         assert (
             zpool.present(
@@ -306,8 +312,9 @@ def test_present_create_passthrough_fail():
             ]
         )
     )
-    with patch.dict(zpool.__salt__, {"zpool.exists": mock_exists}), patch.dict(
-        zpool.__salt__, {"zpool.create": mock_create}
+    with (
+        patch.dict(zpool.__salt__, {"zpool.exists": mock_exists}),
+        patch.dict(zpool.__salt__, {"zpool.create": mock_create}),
     ):
         assert (
             zpool.present(
@@ -394,9 +401,11 @@ def test_present_update_success():
         )
     )
     mock_set = MagicMock(return_value=OrderedDict([("set", True)]))
-    with patch.dict(zpool.__salt__, {"zpool.exists": mock_exists}), patch.dict(
-        zpool.__salt__, {"zpool.get": mock_get}
-    ), patch.dict(zpool.__salt__, {"zpool.set": mock_set}):
+    with (
+        patch.dict(zpool.__salt__, {"zpool.exists": mock_exists}),
+        patch.dict(zpool.__salt__, {"zpool.get": mock_get}),
+        patch.dict(zpool.__salt__, {"zpool.set": mock_set}),
+    ):
         assert (
             zpool.present(
                 "myzpool",

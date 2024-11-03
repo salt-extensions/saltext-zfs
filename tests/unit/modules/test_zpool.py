@@ -308,8 +308,9 @@ def test_scrub_start():
     mock_cmd = MagicMock(return_value=ret)
     mock_exists = MagicMock(return_value=True)
 
-    with patch.dict(zpool.__salt__, {"zpool.exists": mock_exists}), patch.dict(
-        zpool.__salt__, {"cmd.run_all": mock_cmd}
+    with (
+        patch.dict(zpool.__salt__, {"zpool.exists": mock_exists}),
+        patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}),
     ):
         ret = zpool.scrub("mypool")
         res = OrderedDict(OrderedDict([("scrubbing", True)]))
@@ -327,8 +328,9 @@ def test_scrub_pause():
     mock_cmd = MagicMock(return_value=ret)
     mock_exists = MagicMock(return_value=True)
 
-    with patch.dict(zpool.__salt__, {"zpool.exists": mock_exists}), patch.dict(
-        zpool.__salt__, {"cmd.run_all": mock_cmd}
+    with (
+        patch.dict(zpool.__salt__, {"zpool.exists": mock_exists}),
+        patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}),
     ):
         ret = zpool.scrub("mypool", pause=True)
         res = OrderedDict(OrderedDict([("scrubbing", False)]))
@@ -346,8 +348,9 @@ def test_scrub_stop():
     mock_cmd = MagicMock(return_value=ret)
     mock_exists = MagicMock(return_value=True)
 
-    with patch.dict(zpool.__salt__, {"zpool.exists": mock_exists}), patch.dict(
-        zpool.__salt__, {"cmd.run_all": mock_cmd}
+    with (
+        patch.dict(zpool.__salt__, {"zpool.exists": mock_exists}),
+        patch.dict(zpool.__salt__, {"cmd.run_all": mock_cmd}),
     ):
         ret = zpool.scrub("mypool", stop=True)
         res = OrderedDict(OrderedDict([("scrubbing", False)]))
