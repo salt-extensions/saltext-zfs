@@ -688,12 +688,15 @@ class ZFSMockData:
         """
         some more complex patching for zfs.from_auto
         """
-        with patch.object(
-            saltext.zfs.utils.zfs,
-            "property_data_zpool",
-            MagicMock(return_value=self.pmap_zpool),
-        ), patch.object(
-            saltext.zfs.utils.zfs, "property_data_zfs", MagicMock(return_value=self.pmap_zfs)
+        with (
+            patch.object(
+                saltext.zfs.utils.zfs,
+                "property_data_zpool",
+                MagicMock(return_value=self.pmap_zpool),
+            ),
+            patch.object(
+                saltext.zfs.utils.zfs, "property_data_zfs", MagicMock(return_value=self.pmap_zfs)
+            ),
         ):
             return self._utils_from_auto(name, value, source)
 
@@ -701,12 +704,15 @@ class ZFSMockData:
         """
         some more complex patching for zfs.from_auto_dict
         """
-        with patch.object(
-            saltext.zfs.utils.zfs,
-            "property_data_zpool",
-            MagicMock(return_value=self.pmap_zpool),
-        ), patch.object(
-            saltext.zfs.utils.zfs, "property_data_zfs", MagicMock(return_value=self.pmap_zfs)
+        with (
+            patch.object(
+                saltext.zfs.utils.zfs,
+                "property_data_zpool",
+                MagicMock(return_value=self.pmap_zpool),
+            ),
+            patch.object(
+                saltext.zfs.utils.zfs, "property_data_zfs", MagicMock(return_value=self.pmap_zfs)
+            ),
         ):
             return self._utils_from_auto_dict(values, source)
 
@@ -714,12 +720,15 @@ class ZFSMockData:
         """
         some more complex patching for zfs.to_auto
         """
-        with patch.object(
-            saltext.zfs.utils.zfs,
-            "property_data_zpool",
-            MagicMock(return_value=self.pmap_zpool),
-        ), patch.object(
-            saltext.zfs.utils.zfs, "property_data_zfs", MagicMock(return_value=self.pmap_zfs)
+        with (
+            patch.object(
+                saltext.zfs.utils.zfs,
+                "property_data_zpool",
+                MagicMock(return_value=self.pmap_zpool),
+            ),
+            patch.object(
+                saltext.zfs.utils.zfs, "property_data_zfs", MagicMock(return_value=self.pmap_zfs)
+            ),
         ):
             return self._utils_to_auto(name, value, source, convert_to_human)
 
@@ -727,12 +736,15 @@ class ZFSMockData:
         """
         some more complex patching for zfs.to_auto_dict
         """
-        with patch.object(
-            saltext.zfs.utils.zfs,
-            "property_data_zpool",
-            MagicMock(return_value=self.pmap_zpool),
-        ), patch.object(
-            saltext.zfs.utils.zfs, "property_data_zfs", MagicMock(return_value=self.pmap_zfs)
+        with (
+            patch.object(
+                saltext.zfs.utils.zfs,
+                "property_data_zpool",
+                MagicMock(return_value=self.pmap_zpool),
+            ),
+            patch.object(
+                saltext.zfs.utils.zfs, "property_data_zfs", MagicMock(return_value=self.pmap_zfs)
+            ),
         ):
             return self._utils_to_auto_dict(values, source, convert_to_human)
 

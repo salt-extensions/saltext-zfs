@@ -63,8 +63,9 @@ def test_filesystem_absent_removed():
 
     mock_exists = MagicMock(return_value=True)
     mock_destroy = MagicMock(return_value=OrderedDict([("destroyed", True)]))
-    with patch.dict(zfs.__salt__, {"zfs.exists": mock_exists}), patch.dict(
-        zfs.__salt__, {"zfs.destroy": mock_destroy}
+    with (
+        patch.dict(zfs.__salt__, {"zfs.exists": mock_exists}),
+        patch.dict(zfs.__salt__, {"zfs.destroy": mock_destroy}),
     ):
         assert ret == zfs.filesystem_absent("myzpool/filesystem")
 
@@ -104,8 +105,9 @@ def test_filesystem_absent_fail():
             ]
         )
     )
-    with patch.dict(zfs.__salt__, {"zfs.exists": mock_exists}), patch.dict(
-        zfs.__salt__, {"zfs.destroy": mock_destroy}
+    with (
+        patch.dict(zfs.__salt__, {"zfs.exists": mock_exists}),
+        patch.dict(zfs.__salt__, {"zfs.destroy": mock_destroy}),
     ):
         assert ret == zfs.filesystem_absent("myzpool/filesystem")
 
@@ -139,8 +141,9 @@ def test_volume_absent_removed():
 
     mock_exists = MagicMock(return_value=True)
     mock_destroy = MagicMock(return_value=OrderedDict([("destroyed", True)]))
-    with patch.dict(zfs.__salt__, {"zfs.exists": mock_exists}), patch.dict(
-        zfs.__salt__, {"zfs.destroy": mock_destroy}
+    with (
+        patch.dict(zfs.__salt__, {"zfs.exists": mock_exists}),
+        patch.dict(zfs.__salt__, {"zfs.destroy": mock_destroy}),
     ):
         assert ret == zfs.volume_absent("myzpool/volume")
 
@@ -180,8 +183,9 @@ def test_volume_absent_fail():
             ]
         )
     )
-    with patch.dict(zfs.__salt__, {"zfs.exists": mock_exists}), patch.dict(
-        zfs.__salt__, {"zfs.destroy": mock_destroy}
+    with (
+        patch.dict(zfs.__salt__, {"zfs.exists": mock_exists}),
+        patch.dict(zfs.__salt__, {"zfs.destroy": mock_destroy}),
     ):
         assert ret == zfs.volume_absent("myzpool/volume")
 
@@ -215,8 +219,9 @@ def test_snapshot_absent_removed():
 
     mock_exists = MagicMock(return_value=True)
     mock_destroy = MagicMock(return_value=OrderedDict([("destroyed", True)]))
-    with patch.dict(zfs.__salt__, {"zfs.exists": mock_exists}), patch.dict(
-        zfs.__salt__, {"zfs.destroy": mock_destroy}
+    with (
+        patch.dict(zfs.__salt__, {"zfs.exists": mock_exists}),
+        patch.dict(zfs.__salt__, {"zfs.destroy": mock_destroy}),
     ):
         assert ret == zfs.snapshot_absent("myzpool/filesystem@snap")
 
@@ -244,8 +249,9 @@ def test_snapshot_absent_fail():
             ]
         )
     )
-    with patch.dict(zfs.__salt__, {"zfs.exists": mock_exists}), patch.dict(
-        zfs.__salt__, {"zfs.destroy": mock_destroy}
+    with (
+        patch.dict(zfs.__salt__, {"zfs.exists": mock_exists}),
+        patch.dict(zfs.__salt__, {"zfs.destroy": mock_destroy}),
     ):
         assert ret == zfs.snapshot_absent("myzpool/filesystem@snap")
 
@@ -279,8 +285,9 @@ def test_bookmark_absent_removed():
 
     mock_exists = MagicMock(return_value=True)
     mock_destroy = MagicMock(return_value=OrderedDict([("destroyed", True)]))
-    with patch.dict(zfs.__salt__, {"zfs.exists": mock_exists}), patch.dict(
-        zfs.__salt__, {"zfs.destroy": mock_destroy}
+    with (
+        patch.dict(zfs.__salt__, {"zfs.exists": mock_exists}),
+        patch.dict(zfs.__salt__, {"zfs.destroy": mock_destroy}),
     ):
         assert ret == zfs.bookmark_absent("myzpool/filesystem#book")
 
@@ -316,8 +323,9 @@ def test_hold_absent_removed():
 
     mock_holds = MagicMock(return_value=OrderedDict([("myhold", "Thu Feb 15 16:24 2018")]))
     mock_release = MagicMock(return_value=OrderedDict([("released", True)]))
-    with patch.dict(zfs.__salt__, {"zfs.holds": mock_holds}), patch.dict(
-        zfs.__salt__, {"zfs.release": mock_release}
+    with (
+        patch.dict(zfs.__salt__, {"zfs.holds": mock_holds}),
+        patch.dict(zfs.__salt__, {"zfs.release": mock_release}),
     ):
         assert ret == zfs.hold_absent("myhold", "myzpool/filesystem@snap")
 
@@ -376,8 +384,9 @@ def test_hold_present_new():
 
     mock_holds = MagicMock(return_value=OrderedDict([]))
     mock_hold = MagicMock(return_value=OrderedDict([("held", True)]))
-    with patch.dict(zfs.__salt__, {"zfs.holds": mock_holds}), patch.dict(
-        zfs.__salt__, {"zfs.hold": mock_hold}
+    with (
+        patch.dict(zfs.__salt__, {"zfs.holds": mock_holds}),
+        patch.dict(zfs.__salt__, {"zfs.hold": mock_hold}),
     ):
         assert ret == zfs.hold_present("myhold", "myzpool/filesystem@snap")
 
@@ -405,8 +414,9 @@ def test_hold_present_fail():
             ]
         )
     )
-    with patch.dict(zfs.__salt__, {"zfs.holds": mock_holds}), patch.dict(
-        zfs.__salt__, {"zfs.hold": mock_hold}
+    with (
+        patch.dict(zfs.__salt__, {"zfs.holds": mock_holds}),
+        patch.dict(zfs.__salt__, {"zfs.hold": mock_hold}),
     ):
         assert ret == zfs.hold_present("myhold", "myzpool/filesystem@snap")
 
@@ -440,8 +450,9 @@ def test_filesystem_present_new():
 
     mock_exists = MagicMock(return_value=False)
     mock_create = MagicMock(return_value=OrderedDict([("created", True)]))
-    with patch.dict(zfs.__salt__, {"zfs.exists": mock_exists}), patch.dict(
-        zfs.__salt__, {"zfs.create": mock_create}
+    with (
+        patch.dict(zfs.__salt__, {"zfs.exists": mock_exists}),
+        patch.dict(zfs.__salt__, {"zfs.create": mock_create}),
     ):
         assert ret == zfs.filesystem_present("myzpool/filesystem")
 
@@ -473,8 +484,9 @@ def test_filesystem_present_properties():
             ]
         )
     )
-    with patch.dict(zfs.__salt__, {"zfs.exists": mock_exists}), patch.dict(
-        zfs.__salt__, {"zfs.get": mock_get}
+    with (
+        patch.dict(zfs.__salt__, {"zfs.exists": mock_exists}),
+        patch.dict(zfs.__salt__, {"zfs.get": mock_get}),
     ):
         assert ret == zfs.filesystem_present(
             "myzpool/filesystem",
@@ -513,9 +525,11 @@ def test_filesystem_present_update():
             ]
         )
     )
-    with patch.dict(zfs.__salt__, {"zfs.exists": mock_exists}), patch.dict(
-        zfs.__salt__, {"zfs.get": mock_get}
-    ), patch.dict(zfs.__salt__, {"zfs.set": mock_set}):
+    with (
+        patch.dict(zfs.__salt__, {"zfs.exists": mock_exists}),
+        patch.dict(zfs.__salt__, {"zfs.get": mock_get}),
+        patch.dict(zfs.__salt__, {"zfs.set": mock_set}),
+    ):
         assert ret == zfs.filesystem_present(
             name="myzpool/filesystem",
             properties={"compression": "lz4"},
@@ -553,8 +567,9 @@ def test_filesystem_present_fail():
             ]
         )
     )
-    with patch.dict(zfs.__salt__, {"zfs.exists": mock_exists}), patch.dict(
-        zfs.__salt__, {"zfs.create": mock_create}
+    with (
+        patch.dict(zfs.__salt__, {"zfs.exists": mock_exists}),
+        patch.dict(zfs.__salt__, {"zfs.create": mock_create}),
     ):
         assert ret == zfs.filesystem_present("myzpool/filesystem")
 
@@ -572,8 +587,9 @@ def test_volume_present():
 
     mock_exists = MagicMock(return_value=True)
     mock_get = MagicMock(return_value=OrderedDict([("myzpool/volume", OrderedDict([]))]))
-    with patch.dict(zfs.__salt__, {"zfs.exists": mock_exists}), patch.dict(
-        zfs.__salt__, {"zfs.get": mock_get}
+    with (
+        patch.dict(zfs.__salt__, {"zfs.exists": mock_exists}),
+        patch.dict(zfs.__salt__, {"zfs.get": mock_get}),
     ):
         assert ret == zfs.volume_present("myzpool/volume", volume_size="1G")
     mock_get.assert_called_with(
@@ -599,8 +615,9 @@ def test_volume_present_new():
 
     mock_exists = MagicMock(return_value=False)
     mock_create = MagicMock(return_value=OrderedDict([("created", True)]))
-    with patch.dict(zfs.__salt__, {"zfs.exists": mock_exists}), patch.dict(
-        zfs.__salt__, {"zfs.create": mock_create}
+    with (
+        patch.dict(zfs.__salt__, {"zfs.exists": mock_exists}),
+        patch.dict(zfs.__salt__, {"zfs.create": mock_create}),
     ):
         assert ret == zfs.volume_present("myzpool/volume", volume_size="1G")
 
@@ -628,9 +645,11 @@ def test_volume_present_update():
             ]
         )
     )
-    with patch.dict(zfs.__salt__, {"zfs.exists": mock_exists}), patch.dict(
-        zfs.__salt__, {"zfs.get": mock_get}
-    ), patch.dict(zfs.__salt__, {"zfs.set": mock_set}):
+    with (
+        patch.dict(zfs.__salt__, {"zfs.exists": mock_exists}),
+        patch.dict(zfs.__salt__, {"zfs.get": mock_get}),
+        patch.dict(zfs.__salt__, {"zfs.set": mock_set}),
+    ):
         assert ret == zfs.volume_present(
             name="myzpool/volume",
             volume_size="1G",
@@ -666,8 +685,9 @@ def test_volume_present_fail():
             ]
         )
     )
-    with patch.dict(zfs.__salt__, {"zfs.exists": mock_exists}), patch.dict(
-        zfs.__salt__, {"zfs.create": mock_create}
+    with (
+        patch.dict(zfs.__salt__, {"zfs.exists": mock_exists}),
+        patch.dict(zfs.__salt__, {"zfs.create": mock_create}),
     ):
         assert ret == zfs.volume_present("myzpool/volume", volume_size="1G")
 
@@ -701,8 +721,9 @@ def test_bookmark_present_new():
 
     mock_exists = MagicMock(return_value=False)
     mock_bookmark = MagicMock(return_value=OrderedDict([("bookmarked", True)]))
-    with patch.dict(zfs.__salt__, {"zfs.exists": mock_exists}), patch.dict(
-        zfs.__salt__, {"zfs.bookmark": mock_bookmark}
+    with (
+        patch.dict(zfs.__salt__, {"zfs.exists": mock_exists}),
+        patch.dict(zfs.__salt__, {"zfs.bookmark": mock_bookmark}),
     ):
         assert ret == zfs.bookmark_present("mybookmark", "myzpool/filesystem@snap")
 
@@ -730,8 +751,9 @@ def test_bookmark_present_fail():
             ]
         )
     )
-    with patch.dict(zfs.__salt__, {"zfs.exists": mock_exists}), patch.dict(
-        zfs.__salt__, {"zfs.bookmark": mock_bookmark}
+    with (
+        patch.dict(zfs.__salt__, {"zfs.exists": mock_exists}),
+        patch.dict(zfs.__salt__, {"zfs.bookmark": mock_bookmark}),
     ):
         assert ret == zfs.bookmark_present("mybookmark", "myzpool/filesystem@snap")
 
@@ -765,8 +787,9 @@ def test_snapshot_present_new():
 
     mock_exists = MagicMock(return_value=False)
     mock_snapshot = MagicMock(return_value=OrderedDict([("snapshotted", True)]))
-    with patch.dict(zfs.__salt__, {"zfs.exists": mock_exists}), patch.dict(
-        zfs.__salt__, {"zfs.snapshot": mock_snapshot}
+    with (
+        patch.dict(zfs.__salt__, {"zfs.exists": mock_exists}),
+        patch.dict(zfs.__salt__, {"zfs.snapshot": mock_snapshot}),
     ):
         assert ret == zfs.snapshot_present("myzpool/filesystem@snap")
 
@@ -794,8 +817,9 @@ def test_snapshot_present_fail():
             ]
         )
     )
-    with patch.dict(zfs.__salt__, {"zfs.exists": mock_exists}), patch.dict(
-        zfs.__salt__, {"zfs.snapshot": mock_snapshot}
+    with (
+        patch.dict(zfs.__salt__, {"zfs.exists": mock_exists}),
+        patch.dict(zfs.__salt__, {"zfs.snapshot": mock_snapshot}),
     ):
         assert ret == zfs.snapshot_present("myzpool/filesystem@snap")
 
@@ -822,8 +846,9 @@ def test_propmoted():
             ]
         )
     )
-    with patch.dict(zfs.__salt__, {"zfs.exists": mock_exists}), patch.dict(
-        zfs.__salt__, {"zfs.get": mock_get}
+    with (
+        patch.dict(zfs.__salt__, {"zfs.exists": mock_exists}),
+        patch.dict(zfs.__salt__, {"zfs.get": mock_get}),
     ):
         assert ret == zfs.promoted("myzpool/filesystem")
 
@@ -858,9 +883,11 @@ def test_propmoted_clone():
         )
     )
     mock_promote = MagicMock(return_value=OrderedDict([("promoted", True)]))
-    with patch.dict(zfs.__salt__, {"zfs.exists": mock_exists}), patch.dict(
-        zfs.__salt__, {"zfs.get": mock_get}
-    ), patch.dict(zfs.__salt__, {"zfs.promote": mock_promote}):
+    with (
+        patch.dict(zfs.__salt__, {"zfs.exists": mock_exists}),
+        patch.dict(zfs.__salt__, {"zfs.get": mock_get}),
+        patch.dict(zfs.__salt__, {"zfs.promote": mock_promote}),
+    ):
         assert ret == zfs.promoted("myzpool/filesystem")
 
 
