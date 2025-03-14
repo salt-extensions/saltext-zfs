@@ -1,8 +1,8 @@
 """
-    tests.support.zfs
-    ~~~~~~~~~~~~~~~~~
+tests.support.zfs
+~~~~~~~~~~~~~~~~~
 
-    ZFS related unit test data structures
+ZFS related unit test data structures
 """
 
 from unittest.mock import MagicMock
