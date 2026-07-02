@@ -514,9 +514,8 @@ def from_size(value):
 def to_size(value, convert_to_human=True):
     """
     Convert python int (bytes) to zfs size
-
-    NOTE: https://src.illumos.org/source/xref/illumos-gate/usr/src/lib/pyzfs/common/util.py?#114
     """
+    # NOTE: https://github.com/illumos/illumos-gate/blob/18897ab2351474e025444732da89dcaba621c2d3/usr/src/lib/pyzfs/common/util.py#L115
     value = from_size(value)
     if value is None:
         value = "none"
